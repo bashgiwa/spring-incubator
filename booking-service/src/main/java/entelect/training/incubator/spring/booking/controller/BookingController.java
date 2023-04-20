@@ -1,6 +1,7 @@
 package entelect.training.incubator.spring.booking.controller;
 
 import entelect.training.incubator.spring.booking.model.Booking;
+import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.service.BookingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class BookingController {
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("/*")
     ResponseEntity<?> getBookings() {
         LOGGER.info("Get all bookings ");
         List<Booking> bookings = bookingService.getBookings();
@@ -76,6 +77,21 @@ public class BookingController {
         }
 
         LOGGER.trace("Booking does not exist");
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/search")
+    ResponseEntity<?> searchBookings(@RequestBody BookingSearchRequest searchRequest) {
+        LOGGER.info("Processing booking search request for request {}", searchRequest);
+
+        List<Booking> bookings = bookingService.searchBookings(searchRequest);
+
+        if(!bookings.isEmpty()){
+            LOGGER.trace("Found bookings: {}", bookings);
+            return ResponseEntity.ok(bookings);
+        }
+
+        LOGGER.trace("No bookings found");
         return ResponseEntity.notFound().build();
     }
 

@@ -14,9 +14,9 @@ public class BookingConfig {
     CommandLineRunner commandLineRunner (BookingRepository repository) {
         return args -> {
             Booking alpha =  new Booking(
-                    1234, 45, "beta12");
+                    1234, 45, "ABC123");
             Booking beta =  new Booking(
-                    4578, 99, "beta24");
+                    4578, 99, "CDE457");
             repository.saveAll(List.of(alpha, beta));
         };
     }

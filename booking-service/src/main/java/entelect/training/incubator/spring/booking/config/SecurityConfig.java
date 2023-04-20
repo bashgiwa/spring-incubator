@@ -1,4 +1,5 @@
-package entelect.training.incubator.spring.customer.config;
+package entelect.training.incubator.spring.booking.config;
+
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,7 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     //        auth.jdbcAuthentication().dataSource(securityDataSource);
     //    }
-
+//
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication().withUser("user").password("{noop}the_cake").roles("USER");
@@ -35,11 +36,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable() // !!! Disclaimer: NEVER DISABLE CSRF IN PRODUCTION !!!
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/customers/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/customers/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/booking/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/booking/**").permitAll()
                 //.anyRequest().denyAll()
                 .and()
                 .httpBasic();
     }
 
 }
+

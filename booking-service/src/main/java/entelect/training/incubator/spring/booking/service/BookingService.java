@@ -4,6 +4,7 @@ import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -17,7 +18,8 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
 
-    public BookingService(BookingRepository bookingRepository) {
+    @Autowired
+    BookingService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
     }
 

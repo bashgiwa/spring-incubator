@@ -71,7 +71,7 @@ public class BookingController {
         LOGGER.info("Get booking.. ");
         Optional<Booking> booking =  bookingService.getBooking(id);
 
-        if(booking != null){
+        if(booking.isPresent()){
             LOGGER.trace("Found booking");
             return new ResponseEntity<>(booking, HttpStatus.OK);
         }

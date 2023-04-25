@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface BookingRepository extends CrudRepository<Booking, Integer> {
-   List<Booking> findBookingsByReferenceNumber(@Param("referenceNumber") String referenceNumber);
+   List<Booking> findBookingByReferenceNumber(@Param("referenceNumber") String referenceNumber);
 
    List<Booking> findBookingsByCustomerId(@Param("customerId") Integer customerId);
 }

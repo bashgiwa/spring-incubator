@@ -1,5 +1,7 @@
 package entelect.training.incubator.spring.notification.sms.client.model;
 
-public record BookingQueueMessage(String phoneNumber,
-                                  String message) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record BookingQueueMessage(@JsonProperty("phoneNumber")String phoneNumber,
+                                  @JsonProperty("message") String message) {
 }

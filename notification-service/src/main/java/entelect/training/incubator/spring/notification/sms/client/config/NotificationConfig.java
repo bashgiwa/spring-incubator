@@ -1,11 +1,15 @@
 package entelect.training.incubator.spring.notification.sms.client.config;
 
 import entelect.training.incubator.spring.notification.sms.client.NotificationServiceConsumer;
-import org.springframework.amqp.core.*;
+import entelect.training.incubator.spring.notification.sms.client.SmsClient;
+import entelect.training.incubator.spring.notification.sms.client.impl.MoloCellSmsClient;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.sound.midi.Receiver;
 
 @Configuration
 class NotificationConfig {
@@ -26,9 +30,13 @@ class NotificationConfig {
                 .to(eventExchange)
                 .with("booking.*");
     }
+    @Bean
+    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
 
     @Bean
-    public NotificationServiceConsumer eventReceiver() {
-        return new NotificationServiceConsumer();
+    public SmsClient smsClient() {
+        return new MoloCellSmsClient();
     }
 }

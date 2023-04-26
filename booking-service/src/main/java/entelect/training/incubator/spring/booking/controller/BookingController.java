@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +48,7 @@ public class BookingController {
         }
 
         final Booking savedBooking = bookingService.createBooking(booking);
+        bookingService.sendBookingNotification((LinkedHashMap<String, String>) customer.getBody(), (LinkedHashMap<String, String>) flight.getBody());
 
         LOGGER.trace("Booking created");
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);

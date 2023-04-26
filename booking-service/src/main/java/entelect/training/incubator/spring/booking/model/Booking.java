@@ -3,7 +3,6 @@ package entelect.training.incubator.spring.booking.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.annotation.processing.Generated;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;

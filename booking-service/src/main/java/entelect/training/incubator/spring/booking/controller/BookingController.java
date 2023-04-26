@@ -54,20 +54,6 @@ public class BookingController {
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
-    @GetMapping("/*")
-    ResponseEntity<?> getBookings() {
-        LOGGER.info("Get all bookings ");
-        List<Booking> bookings = bookingService.getBookings();
-
-        if(!bookings.isEmpty()){
-            LOGGER.trace("Found bookings");
-            return new ResponseEntity<>(bookings, HttpStatus.OK);
-        }
-
-        LOGGER.trace("No bookings available");
-        return ResponseEntity.notFound().build();
-    }
-
     @GetMapping("{id}")
     ResponseEntity<?> getBooking(@PathVariable Integer id) {
         LOGGER.info("Get booking.. ");

@@ -51,6 +51,13 @@
             <artifactId>spring-boot-starter-json</artifactId>
         </dependency>
 
+        <!-- springdoc -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
         <!-- HyperSQL -->
         <dependency>
             <groupId>org.hsqldb</groupId>

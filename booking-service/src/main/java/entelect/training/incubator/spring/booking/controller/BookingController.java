@@ -60,7 +60,7 @@ public class BookingController {
         Optional<Booking> booking =  bookingService.getBooking(id);
 
         if(booking.isPresent()){
-            LOGGER.trace("Found booking");
+            LOGGER.trace("Booking found , id:: " + id);
             return new ResponseEntity<>(booking, HttpStatus.OK);
         }
 
@@ -80,6 +80,21 @@ public class BookingController {
         }
 
         LOGGER.trace("No bookings found");
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("{id}")
+    ResponseEntity<?> deleteBooking(@PathVariable Integer id) {
+        LOGGER.info("Get booking.. ");
+        Optional<Booking> booking =  bookingService.getBooking(id);
+
+        if(booking.isPresent()){
+            LOGGER.trace("Deleting booking data from db:: " + id);
+            bookingService.deleteBooking(id);
+            return new ResponseEntity<HttpStatus>(HttpStatus.NO_CONTENT);
+        }
+
+        LOGGER.trace("Booking does not exist");
         return ResponseEntity.notFound().build();
     }
 

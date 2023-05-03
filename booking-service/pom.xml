@@ -58,6 +58,16 @@
             <version>1.6.4</version>
         </dependency>
 
+        <!-- cache -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- HyperSQL -->
         <dependency>
             <groupId>org.hsqldb</groupId>

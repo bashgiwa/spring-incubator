@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,8 +28,6 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingReferenceGenerator referenceGenerator;
 
-    @Autowired
-    CacheManager cacheManager;
     @Autowired
     BookingService(RabbitTemplate rabbitTemplate,
                    TopicExchange exchange,

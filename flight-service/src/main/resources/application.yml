@@ -1,4 +1,8 @@
 spring:
+  cache:
+    cache-names: flights
+    caffeine:
+      spec: maximumSize=500, expireAfterAccess=30m
   application:
     name: flight-service
   datasource:

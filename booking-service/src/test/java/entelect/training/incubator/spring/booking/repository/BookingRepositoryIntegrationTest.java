@@ -30,17 +30,18 @@ class BookingRepositoryIntegrationTest {
 
     @Test
     public void whenFindByReferenceNumber_thenReturnBooking() {
-        Booking booking = createTestBooking(1);
+        Booking booking = createTestBooking(1, TEST_CUSTOMER_ID, TEST_FLIGHT_ID);
         entityManager.merge(booking);
-
-        assertThat(repository.findBookingByReferenceNumber(booking.getReferenceNumber()))
-                .filteredOn("customerId", TEST_CUSTOMER_ID).hasSize(1);
+        List<Booking> found = (List<Booking>) repository.findBookingByReferenceNumber(booking.getReferenceNumber());
+        assertThat(found).filteredOn("customerId", TEST_CUSTOMER_ID).hasSize(1);
+        assertThat(found.get(0).getFlightId()).isEqualTo(TEST_FLIGHT_ID);
+        assertThat(found.get(0).getCustomerId()).isEqualTo(TEST_CUSTOMER_ID);
     }
 
     @Test
     public void whenFindByCustomerId_thenReturnBookings() {
         for(int i=1; i<=3; i++) {
-            Booking booking = createTestBooking(i);
+            Booking booking = createTestBooking(i, TEST_CUSTOMER_ID, TEST_FLIGHT_ID);
             entityManager.merge(booking);
         }
         assertThat(repository.findBookingsByCustomerId(TEST_CUSTOMER_ID))
@@ -48,12 +49,12 @@ class BookingRepositoryIntegrationTest {
                 .hasSize(3);
     }
 
-    private Booking createTestBooking(Integer id){
+    private Booking createTestBooking(Integer id, Integer customerId, Integer flightId){
         Booking booking =  new Booking();
         BookingReferenceGenerator referenceGenerator = new BookingReferenceGenerator();
         booking.setId(id);
-        booking.setCustomerId(TEST_CUSTOMER_ID);
-        booking.setFlightId(TEST_FLIGHT_ID);
+        booking.setCustomerId(customerId);
+        booking.setFlightId(flightId);
         booking.setReferenceNumber(referenceGenerator.generate());
         return booking;
     }

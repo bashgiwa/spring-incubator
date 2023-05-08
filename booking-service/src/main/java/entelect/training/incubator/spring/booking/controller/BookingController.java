@@ -9,9 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,30 +26,30 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
+    
     @PostMapping
     ResponseEntity<?> createBooking(@RequestBody Booking booking) {
         LOGGER.info("Processing booking creation request for ");
 
-        ResponseEntity<Object> customer = new RestTemplate()
-                .getForEntity("http://localhost:8201/customers/"+ booking.getCustomerId(), Object.class);
-
-        ResponseEntity<Object> flight = new RestTemplate()
-                .getForEntity("http://localhost:8202/flights/"+ booking.getFlightId(), Object.class);
-
+        final ResponseEntity<Object> customer = bookingService.invokeExternalService("http://localhost:8201/customers/"+ booking.getCustomerId());
         if(customer.getStatusCode() == HttpStatus.NOT_FOUND ){
             LOGGER.trace("Customer with "+ booking.getCustomerId() + "not found");
             return ResponseEntity.notFound().build();
         }
 
+        final ResponseEntity<Object> flight = bookingService.invokeExternalService("http://localhost:8202/flights/"+ booking.getFlightId());
         if(flight.getStatusCode() == HttpStatus.NOT_FOUND){
             LOGGER.trace("Flight with "+ booking.getFlightId() + "not found");
             return ResponseEntity.notFound().build();
         }
 
-        final Booking savedBooking = bookingService.createBooking(booking);
-        bookingService.sendBookingNotification((LinkedHashMap<String, String>) customer.getBody(), (LinkedHashMap<String, String>) flight.getBody());
+        final HashMap<?,?> flightDto = (HashMap<?, ?>) flight.getBody();
+        final HashMap<?,?>  customerDto = (HashMap<?, ?>) customer.getBody();
 
-        LOGGER.trace("Booking created");
+        final Booking savedBooking = bookingService.createBooking(booking);
+        LOGGER.trace("Booking created" + savedBooking);
+
+        bookingService.sendBookingNotification(customerDto, flightDto);
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
@@ -97,5 +96,4 @@ public class BookingController {
         LOGGER.trace("Booking does not exist");
         return ResponseEntity.notFound().build();
     }
-
 }

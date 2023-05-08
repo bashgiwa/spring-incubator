@@ -6,6 +6,8 @@ import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
 
+import entelect.training.incubator.spring.booking.rewards.RewardsClient;
+import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
@@ -14,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -27,6 +32,9 @@ public class BookingService {
     private final TopicExchange exchange;
     private final BookingRepository bookingRepository;
     private final BookingReferenceGenerator referenceGenerator;
+
+    @Autowired
+    RewardsClient rewardsClient;
 
     @Autowired
     BookingService(RabbitTemplate rabbitTemplate,
@@ -74,13 +82,27 @@ public class BookingService {
         bookingRepository.deleteById(id);
     }
 
-    public void sendBookingNotification(LinkedHashMap<String, String> customer, LinkedHashMap<String, String> flight) {
+    public void sendBookingNotification(final HashMap<?,?> customer, final HashMap<?,?> flight) {
         final String message = "Molo Air: Confirming flight "+ flight.get("flightNumber") + " booked for "
                 + customer.get("firstName") + " " + customer.get("lastName") + " on "+ flight.get("departureTime");
-        final var notification = new BookingCreatedMessage(customer.get("phoneNumber"), message);
+        final var notification = new BookingCreatedMessage((String) customer.get("phoneNumber"), message);
 
         String routingKey = "booking.created";
 
         rabbitTemplate.convertAndSend(exchange.getName(), routingKey, notification);
+        LOGGER.info("rabbitmq messaging completed" );
+    }
+
+    public ResponseEntity<Object> invokeExternalService(String url) {
+        ResponseEntity<Object> external = new RestTemplate().getForEntity(url, Object.class);
+        return external;
+    }
+
+    public void doSOAPHandshake(final HashMap<?,?> customer, final HashMap<?,?> flight) {
+        LOGGER.info("attempt soap handshake" );
+        CaptureRewardsResponse response = rewardsClient.captureRewards( BigDecimal.valueOf((double) flight.get("seatCost")) ,
+        (String) customer.get("passportNumber"));
+
+        LOGGER.info("soap handshake completed" + response);
     }
 }

@@ -59,7 +59,8 @@ public class BookingsRestControllerIntegrationTest {
         createTestBooking();
 
         List<Booking> found = (List<Booking>) repository.findAll();
-        Assertions.assertThat(found).extracting(Booking::getFlightId).containsOnly(TEST_FLIGHT_ID);
+        assertThat(found).hasSize(1);
+        assertThat(found.get(0).getCustomerId()).isEqualTo(TEST_CUSTOMER_ID);
     }
 
     @Test

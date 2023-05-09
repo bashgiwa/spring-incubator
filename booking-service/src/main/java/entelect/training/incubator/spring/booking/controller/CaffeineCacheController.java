@@ -43,7 +43,8 @@ class CaffeineCacheController {
         final ConcurrentMap<String, Object> data = cache.asMap();
         final String json = objectMapper.writeValueAsString(data);
 
-        final TypeReference<HashMap<String,Object>> typeRef = new TypeReference<>() {};
+        final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
+        };
         return objectMapper.readValue(json, typeRef);
     }
 }

@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class BookingRepositoryIntegrationTest {
     private static final Integer TEST_CUSTOMER_ID = 1;
-    private static final Integer TEST_FLIGHT_ID =  1;
+    private static final Integer TEST_FLIGHT_ID = 1;
 
     @Autowired
     TestEntityManager entityManager;
@@ -40,7 +40,7 @@ class BookingRepositoryIntegrationTest {
 
     @Test
     public void whenFindByCustomerId_thenReturnBookings() {
-        for(int i=1; i<=3; i++) {
+        for (int i = 1; i <= 3; i++) {
             Booking booking = createTestBooking(i, TEST_CUSTOMER_ID, TEST_FLIGHT_ID);
             entityManager.merge(booking);
         }
@@ -49,8 +49,8 @@ class BookingRepositoryIntegrationTest {
                 .hasSize(3);
     }
 
-    private Booking createTestBooking(Integer id, Integer customerId, Integer flightId){
-        Booking booking =  new Booking();
+    private Booking createTestBooking(Integer id, Integer customerId, Integer flightId) {
+        Booking booking = new Booking();
         BookingReferenceGenerator referenceGenerator = new BookingReferenceGenerator();
         booking.setId(id);
         booking.setCustomerId(customerId);

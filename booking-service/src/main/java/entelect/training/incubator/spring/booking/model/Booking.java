@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @Entity
 public class Booking {
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private Integer customerId;

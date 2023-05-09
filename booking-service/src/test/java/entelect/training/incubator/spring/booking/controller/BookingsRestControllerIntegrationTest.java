@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BookingsRestControllerIntegrationTest {
     private static final Integer TEST_CUSTOMER_ID = 1;
 
-    private static final Integer TEST_FLIGHT_ID =  1;
+    private static final Integer TEST_FLIGHT_ID = 1;
 
     @Autowired
     private MockMvc mvc;
@@ -77,7 +77,7 @@ public class BookingsRestControllerIntegrationTest {
     public void givenBookings_whenGetBookingsByCustomerId_thenReturnBookings() throws Exception {
         createTestBooking();
 
-        BookingSearchRequest bookingSearchRequest =  new BookingSearchRequest();
+        BookingSearchRequest bookingSearchRequest = new BookingSearchRequest();
         bookingSearchRequest.setSearchType(SearchType.CUSTOMER_ID_SEARCH);
         bookingSearchRequest.setCustomerId(TEST_CUSTOMER_ID);
 
@@ -95,20 +95,20 @@ public class BookingsRestControllerIntegrationTest {
         Booking booking = createTestBooking();
         String TEST_REFERENCE_NUMBER = booking.getReferenceNumber();
 
-        BookingSearchRequest bookingSearchRequest =  new BookingSearchRequest();
+        BookingSearchRequest bookingSearchRequest = new BookingSearchRequest();
         bookingSearchRequest.setSearchType(SearchType.REFERENCE_NUMBER_SEARCH);
         bookingSearchRequest.setReferenceNumber(TEST_REFERENCE_NUMBER);
 
         mvc.perform(post("/bookings/search").contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(bookingSearchRequest)))
-                        .andDo(print())
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$[0].referenceNumber", is(TEST_REFERENCE_NUMBER)));
+                .content(toJson(bookingSearchRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].referenceNumber", is(TEST_REFERENCE_NUMBER)));
 
     }
 
-    private Booking createTestBooking(){
-        Booking booking =  new Booking();
+    private Booking createTestBooking() {
+        Booking booking = new Booking();
         booking.setCustomerId(TEST_CUSTOMER_ID);
         booking.setFlightId(TEST_FLIGHT_ID);
         return bookingService.createBooking(booking);

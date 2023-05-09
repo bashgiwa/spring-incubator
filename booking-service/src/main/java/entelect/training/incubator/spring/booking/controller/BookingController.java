@@ -26,39 +26,42 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
-    
+
     @PostMapping
     ResponseEntity<?> createBooking(@RequestBody Booking booking) {
         LOGGER.info("Processing booking creation request for ");
 
-        final ResponseEntity<Object> customer = bookingService.invokeExternalService("http://localhost:8201/customers/"+ booking.getCustomerId());
-        if(customer.getStatusCode() == HttpStatus.NOT_FOUND ){
-            LOGGER.trace("Customer with "+ booking.getCustomerId() + "not found");
+        final ResponseEntity<Object> customer = bookingService.invokeExternalService("http://localhost:8201/customers/" + booking.getCustomerId());
+        if(customer.getStatusCode() == HttpStatus.NOT_FOUND) {
+            LOGGER.trace("Customer with " + booking.getCustomerId() + "not found");
             return ResponseEntity.notFound().build();
         }
 
-        final ResponseEntity<Object> flight = bookingService.invokeExternalService("http://localhost:8202/flights/"+ booking.getFlightId());
-        if(flight.getStatusCode() == HttpStatus.NOT_FOUND){
-            LOGGER.trace("Flight with "+ booking.getFlightId() + "not found");
+        final ResponseEntity<Object> flight = bookingService.invokeExternalService("http://localhost:8202/flights/" + booking.getFlightId());
+        if(flight.getStatusCode() == HttpStatus.NOT_FOUND) {
+            LOGGER.trace("Flight with " + booking.getFlightId() + "not found");
             return ResponseEntity.notFound().build();
         }
 
-        final HashMap<?,?> flightDto = (HashMap<?, ?>) flight.getBody();
-        final HashMap<?,?>  customerDto = (HashMap<?, ?>) customer.getBody();
+        final HashMap<?, ?> flightDto = (HashMap<?, ?>) flight.getBody();
+        final HashMap<?, ?>  customerDto = (HashMap<?, ?>) customer.getBody();
 
         final Booking savedBooking = bookingService.createBooking(booking);
         LOGGER.trace("Booking created" + savedBooking);
 
         bookingService.sendBookingNotification(customerDto, flightDto);
+
+        bookingService.doSOAPHandshake(customerDto, flightDto);
+
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
     ResponseEntity<?> getBooking(@PathVariable Integer id) {
         LOGGER.info("Get booking.. ");
-        Optional<Booking> booking =  bookingService.getBooking(id);
+        Optional<Booking> booking = bookingService.getBooking(id);
 
-        if(booking.isPresent()){
+        if(booking.isPresent()) {
             LOGGER.trace("Booking found , id:: " + id);
             return new ResponseEntity<>(booking, HttpStatus.OK);
         }
@@ -73,7 +76,7 @@ public class BookingController {
 
         List<Booking> bookings = bookingService.searchBookings(searchRequest);
 
-        if(!bookings.isEmpty()){
+        if(!bookings.isEmpty()) {
             LOGGER.trace("Found bookings: {}", bookings);
             return ResponseEntity.ok(bookings);
         }
@@ -85,9 +88,9 @@ public class BookingController {
     @DeleteMapping("{id}")
     ResponseEntity<?> deleteBooking(@PathVariable Integer id) {
         LOGGER.info("Get booking.. ");
-        Optional<Booking> booking =  bookingService.getBooking(id);
+        Optional<Booking> booking = bookingService.getBooking(id);
 
-        if(booking.isPresent()){
+        if(booking.isPresent()) {
             LOGGER.trace("Deleting booking data from db:: " + id);
             bookingService.deleteBooking(id);
             return new ResponseEntity<HttpStatus>(HttpStatus.NO_CONTENT);

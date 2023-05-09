@@ -38,8 +38,8 @@ public class BookingService {
 
     @Autowired
     BookingService(RabbitTemplate rabbitTemplate,
-                   TopicExchange exchange,
-                   BookingRepository bookingRepository) {
+            TopicExchange exchange,
+            BookingRepository bookingRepository) {
         this.rabbitTemplate = rabbitTemplate;
         this.exchange = exchange;
         this.bookingRepository = bookingRepository;
@@ -55,7 +55,7 @@ public class BookingService {
         return (List<Booking>) bookingRepository.findAll();
     }
 
-    @Cacheable(key="#id")
+    @Cacheable(key = "#id")
     public Optional<Booking> getBooking(Integer id) {
 
         Optional<Booking> bookingOptional = bookingRepository.findById(id);
@@ -66,8 +66,8 @@ public class BookingService {
         return Optional.ofNullable(bookingOptional.orElse(null));
     }
 
-    @Cacheable(value="bookings")
-    public List<Booking> searchBookings(BookingSearchRequest searchRequest){
+    @Cacheable(value = "bookings")
+    public List<Booking> searchBookings(BookingSearchRequest searchRequest) {
         LOGGER.info("Booking search data fetched from db:: " + searchRequest.getSearchType());
         Map<SearchType, Supplier<List<Booking>>> searchStrategies = new HashMap<>();
 
@@ -77,20 +77,20 @@ public class BookingService {
         return searchStrategies.get(searchRequest.getSearchType()).get();
     }
 
-    @CacheEvict(key="#id", allEntries = true)
+    @CacheEvict(key = "#id", allEntries = true)
     public void deleteBooking(Integer id) {
         bookingRepository.deleteById(id);
     }
 
-    public void sendBookingNotification(final HashMap<?,?> customer, final HashMap<?,?> flight) {
-        final String message = "Molo Air: Confirming flight "+ flight.get("flightNumber") + " booked for "
-                + customer.get("firstName") + " " + customer.get("lastName") + " on "+ flight.get("departureTime");
+    public void sendBookingNotification(final HashMap<?, ?> customer, final HashMap<?, ?> flight) {
+        final String message = "Molo Air: Confirming flight " + flight.get("flightNumber") + " booked for "
+                + customer.get("firstName") + " " + customer.get("lastName") + " on " + flight.get("departureTime");
         final var notification = new BookingCreatedMessage((String) customer.get("phoneNumber"), message);
 
         String routingKey = "booking.created";
 
         rabbitTemplate.convertAndSend(exchange.getName(), routingKey, notification);
-        LOGGER.info("rabbitmq messaging completed" );
+        LOGGER.info("rabbitmq messaging completed");
     }
 
     public ResponseEntity<Object> invokeExternalService(String url) {
@@ -98,10 +98,10 @@ public class BookingService {
         return external;
     }
 
-    public void doSOAPHandshake(final HashMap<?,?> customer, final HashMap<?,?> flight) {
-        LOGGER.info("attempt soap handshake" );
-        CaptureRewardsResponse response = rewardsClient.captureRewards( BigDecimal.valueOf((double) flight.get("seatCost")) ,
-        (String) customer.get("passportNumber"));
+    public void doSOAPHandshake(final HashMap<?, ?> customer, final HashMap<?, ?> flight) {
+        LOGGER.info("attempt soap handshake");
+        CaptureRewardsResponse response = rewardsClient.captureRewards(BigDecimal.valueOf((double) flight.get("seatCost")),
+                (String) customer.get("passportNumber"));
 
         LOGGER.info("soap handshake completed" + response);
     }

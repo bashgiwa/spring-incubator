@@ -21,7 +21,7 @@ public class RewardsClient extends WebServiceGatewaySupport {
     }
 
     public RewardsBalanceResponse rewardsBalance(String passportNumber) {
-        RewardsBalanceRequest rewardsBalanceRequest =  new RewardsBalanceRequest();
+        RewardsBalanceRequest rewardsBalanceRequest = new RewardsBalanceRequest();
         rewardsBalanceRequest.setPassportNumber(passportNumber);
 
         RewardsBalanceResponse rewardsBalanceResponse = (RewardsBalanceResponse) getWebServiceTemplate()

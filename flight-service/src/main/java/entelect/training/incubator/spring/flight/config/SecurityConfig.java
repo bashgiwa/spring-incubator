@@ -32,18 +32,19 @@ public class SecurityConfig {
     InMemoryUserDetailsManager inMemoryAuthManager() {
         return new InMemoryUserDetailsManager(
                 User.builder().username("user").password("{noop}the_cake").roles("USER").build(),
-                User.builder().username("admin").password("{noop}is_a_lie").roles("ADMIN").build()
+                User.builder().username("admin").password("{noop}is_a_lie").roles("ADMIN").build(),
+                User.builder().username("loyalty_user").password("{noop}fruity_loom").roles("LOYALTY_USER").build()
         );
     }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // ?? with the denyAll commented, what does this actually do?
         http.csrf().disable() // !!! Disclaimer: NEVER DISABLE CSRF IN PRODUCTION !!!
                 .authorizeHttpRequests()
                 .requestMatchers(HttpMethod.GET, "/flights/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/flights/**").permitAll()
-//                .anyRequest().denyAll()
+                .requestMatchers(HttpMethod.GET, "/flights/specials/**").hasAnyRole("LOYALTY_USER")
+                .requestMatchers(HttpMethod.POST, "/flights").hasAnyRole("ADMIN")
+                .anyRequest().authenticated()
                 .and()
                 .httpBasic();
         return http.build();

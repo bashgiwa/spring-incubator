@@ -8,6 +8,7 @@ import entelect.training.incubator.spring.booking.repository.BookingRepository;
 
 import entelect.training.incubator.spring.booking.rewards.RewardsClient;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
+import entelect.training.incubator.spring.booking.rewards.stub.RewardsBalanceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
@@ -103,6 +104,6 @@ public class BookingService {
         CaptureRewardsResponse response = rewardsClient.captureRewards(BigDecimal.valueOf((double) flight.get("seatCost")),
                 (String) customer.get("passportNumber"));
 
-        LOGGER.info("soap handshake completed" + response);
+        LOGGER.info("soap handshake completed " + response.getBalance());
     }
 }

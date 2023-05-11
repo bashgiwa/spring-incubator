@@ -21,7 +21,7 @@ public class NotificationServiceConsumer {
 
   @RabbitListener(queues = "bookingServiceQueue")
     public void receive(final BookingQueueMessage bookingQueueMessage) {
-    logger.info("Received message from booking service" + bookingQueueMessage.phoneNumber());
+    logger.info("Received message from booking service " + bookingQueueMessage.phoneNumber());
     smsClient.sendSms(bookingQueueMessage.phoneNumber(), bookingQueueMessage.message());
   }
 }

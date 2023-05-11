@@ -1,6 +1,5 @@
 package entelect.training.incubator.spring.notification.sms.client.config;
 
-import entelect.training.incubator.spring.notification.sms.client.NotificationServiceConsumer;
 import entelect.training.incubator.spring.notification.sms.client.SmsClient;
 import entelect.training.incubator.spring.notification.sms.client.impl.MoloCellSmsClient;
 import org.springframework.amqp.core.Binding;

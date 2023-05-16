@@ -1,10 +1,12 @@
 package entelect.training.incubator.spring.authentication.service;
 
 import entelect.training.incubator.spring.authentication.exception.UserNotFoundException;
+import entelect.training.incubator.spring.authentication.model.Role;
 import entelect.training.incubator.spring.authentication.model.User;
 import entelect.training.incubator.spring.authentication.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class UserService {
@@ -16,6 +18,7 @@ public class UserService {
     }
 
     public void saveUser(User user) {
+        user.setRole(Role.USER);
         userRepository.save(user);
     }
 
@@ -26,4 +29,5 @@ public class UserService {
         }
         return user;
     }
+
 }

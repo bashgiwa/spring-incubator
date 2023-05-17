@@ -1,7 +1,7 @@
 package entelect.training.incubator.spring.authentication.service;
 
+import entelect.training.incubator.spring.authentication.controller.RegisterRequest;
 import entelect.training.incubator.spring.authentication.exception.UserNotFoundException;
-import entelect.training.incubator.spring.authentication.model.Role;
 import entelect.training.incubator.spring.authentication.model.User;
 import entelect.training.incubator.spring.authentication.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +17,14 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public void saveUser(User user) {
-        user.setRole(Role.USER);
-        userRepository.save(user);
+    public User saveUser(RegisterRequest request) {
+        var user = User.builder()
+                .username(request.getUsername())
+                .password(request.getPassword())
+                .email(request.getEmail())
+                .role(request.getRole())
+                .build();
+        return userRepository.save(user);
     }
 
     public User getUserByNameAndPassword(String name, String password) throws UserNotFoundException {

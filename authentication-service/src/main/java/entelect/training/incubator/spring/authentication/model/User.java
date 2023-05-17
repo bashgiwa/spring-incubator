@@ -29,10 +29,22 @@ public class User implements UserDetails {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    Role role;
+    private Role role;
 
     public Integer getId() {
         return id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public String getUsername() {

@@ -31,17 +31,17 @@ class UserController {
             if(userdata == null) {
                 throw new UserNotFoundException("Username or password is invalid");
             }
-            return new ResponseEntity<>(jwtGenerator.generateToken(user), HttpStatus.OK);
+            return new ResponseEntity<>(jwtGenerator.generateToken(userdata), HttpStatus.OK);
         }catch (UserNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user){
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request){
         try {
-            userService.saveUser(user);
-            return new ResponseEntity<>(user, HttpStatus.CREATED);
+            final User newUser = userService.saveUser(request);
+            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
         }catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }

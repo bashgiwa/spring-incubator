@@ -2,6 +2,8 @@ package entelect.training.incubator.spring.booking.controller;
 
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
+import entelect.training.incubator.spring.booking.response.CustomerSubscription;
+import entelect.training.incubator.spring.booking.response.FlightSubscription;
 import entelect.training.incubator.spring.booking.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,25 +45,21 @@ public class BookingController {
     ResponseEntity<?> createBooking(@RequestBody Booking booking) {
         LOGGER.info("Processing booking creation request for ");
 
-        final ResponseEntity<Object> customer = bookingService.invokeExternalService("http://localhost:8201/customers/" + booking.getCustomerId());
-        if(customer.getStatusCode() == HttpStatus.NOT_FOUND) {
+
+        final ResponseEntity<CustomerSubscription> customer = bookingService.getCustomerDetailsById(booking.getCustomerId().toString());
+        if(customer.getStatusCode() == HttpStatus.NOT_FOUND){
             LOGGER.trace("Customer with " + booking.getCustomerId() + "not found");
-            return ResponseEntity.notFound().build();
         }
 
-        final ResponseEntity<Object> flight = bookingService.invokeExternalService("http://localhost:8202/flights/" + booking.getFlightId());
-        if(flight.getStatusCode() == HttpStatus.NOT_FOUND) {
-            LOGGER.trace("Flight with " + booking.getFlightId() + "not found");
-            return ResponseEntity.notFound().build();
+        final ResponseEntity<FlightSubscription> flight = bookingService.getFlightDetailsById(booking.getFlightId().toString());
+        if(flight.getStatusCode() == HttpStatus.NOT_FOUND){
+            LOGGER.trace("Flight with " + booking.getCustomerId() + "not found");
         }
-
-        final HashMap<?, ?> flightDto = (HashMap<?, ?>) flight.getBody();
-        final HashMap<?, ?>  customerDto = (HashMap<?, ?>) customer.getBody();
 
         final Booking savedBooking = bookingService.createBooking(booking);
         LOGGER.trace("Booking created" + savedBooking);
 
-        bookingService.onBookingCreated(customerDto, flightDto);
+        bookingService.onBookingCreated(customer.getBody(), flight.getBody());
 
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }

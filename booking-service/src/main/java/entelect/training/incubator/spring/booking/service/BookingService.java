@@ -6,9 +6,10 @@ import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
 
+import entelect.training.incubator.spring.booking.response.CustomerSubscription;
+import entelect.training.incubator.spring.booking.response.FlightSubscription;
 import entelect.training.incubator.spring.booking.rewards.RewardsClient;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
-import entelect.training.incubator.spring.booking.rewards.stub.RewardsBalanceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
@@ -17,9 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -36,6 +39,9 @@ public class BookingService {
 
     @Autowired
     RewardsClient rewardsClient;
+
+    @Autowired
+    WebClient webClient;
 
     @Autowired
     BookingService(RabbitTemplate rabbitTemplate,
@@ -83,27 +89,53 @@ public class BookingService {
         bookingRepository.deleteById(id);
     }
 
-    public void sendBookingNotification(final HashMap<?, ?> customer, final HashMap<?, ?> flight) {
-        final String message = "Molo Air: Confirming flight " + flight.get("flightNumber") + " booked for "
-                + customer.get("firstName") + " " + customer.get("lastName") + " on " + flight.get("departureTime");
-        final var notification = new BookingCreatedMessage((String) customer.get("phoneNumber"), message);
+    public void sendBookingNotification(CustomerSubscription customer, FlightSubscription flight) {
+        final String message = "Molo Air: Confirming flight " + flight.getFlightNumber() + " booked for "
+                + customer.getFirstName() + " " + customer.getLastName() + " on " + flight.getDepartureTime();
+        final var notification = new BookingCreatedMessage(customer.getPhoneNumber(), message);
 
         String routingKey = "booking.created";
 
         rabbitTemplate.convertAndSend(exchange.getName(), routingKey, notification);
         LOGGER.info("rabbitmq messaging completed");
     }
+    public ResponseEntity<CustomerSubscription> getCustomerDetailsById(String id) {
 
-    public ResponseEntity<Object> invokeExternalService(String url) {
-        ResponseEntity<Object> external = new RestTemplate().getForEntity(url, Object.class);
-        return external;
+        ResponseEntity<CustomerSubscription> customer = webClient
+                .get()
+                .uri(String.join("","http://localhost:8201/customers/", id))
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, error -> Mono.error(new RuntimeException("Flight not found")))
+                .onStatus(HttpStatusCode::is5xxServerError, error -> Mono.error(new RuntimeException("Server error")))
+                .toEntity(CustomerSubscription.class).block();
+
+        return customer;
     }
 
-    public void doSOAPHandshake(final HashMap<?, ?> customer, final HashMap<?, ?> flight) {
+    public ResponseEntity<FlightSubscription> getFlightDetailsById(String id) {
+
+        ResponseEntity<FlightSubscription> flight = webClient
+                .get()
+                .uri(String.join("","http://localhost:8202/flights/", id))
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, error -> Mono.error(new RuntimeException("Flight not found")))
+                .onStatus(HttpStatusCode::is5xxServerError, error -> Mono.error(new RuntimeException("Server error")))
+                .toEntity(FlightSubscription.class).block();
+
+        return flight;
+    }
+
+    public void doSOAPHandshake(CustomerSubscription customer, FlightSubscription flight) {
         LOGGER.info("attempt soap handshake");
-        CaptureRewardsResponse response = rewardsClient.captureRewards(BigDecimal.valueOf((double) flight.get("seatCost")),
-                (String) customer.get("passportNumber"));
+        CaptureRewardsResponse response = rewardsClient.captureRewards(BigDecimal.valueOf((double) flight.getSeatCost()),
+                customer.getPassportNumber());
 
         LOGGER.info("soap handshake completed " + response.getBalance());
+    }
+
+    public void onBookingCreated(CustomerSubscription customer, FlightSubscription flight) {
+        sendBookingNotification(customer, flight);
+
+        doSOAPHandshake(customer, flight);
     }
 }

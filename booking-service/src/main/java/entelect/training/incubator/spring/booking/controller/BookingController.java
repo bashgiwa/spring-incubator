@@ -62,9 +62,7 @@ public class BookingController {
         final Booking savedBooking = bookingService.createBooking(booking);
         LOGGER.trace("Booking created" + savedBooking);
 
-        bookingService.sendBookingNotification(customerDto, flightDto);
-
-        bookingService.doSOAPHandshake(customerDto, flightDto);
+        bookingService.onBookingCreated(customerDto, flightDto);
 
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }

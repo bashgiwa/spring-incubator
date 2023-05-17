@@ -36,29 +36,18 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             //validate token
             Claims claims = Jwts.parser().setSigningKey("secret").parseClaimsJws(token).getBody();
             String username = claims.getSubject();
-            List<String> userAuth;
             if(username != null){
-                ArrayList authority = (ArrayList) claims.get("authorities");
-                LinkedHashMap<String, String> authorities = (LinkedHashMap<String, String>)authority.get(0);
-                List<String> authorities = (List<String>) authority.get(0).;
-                authorities.forEach(authority -> userAuth.add(authority("authority")));
-
-                LinkedHashMap<String, String> authority = (LinkedHashMap<String, String>) claims.get("authorities").get(0);
-                List<String> authorities = (List<String>) authority.values();
-
+                ArrayList appAuthority = (ArrayList) claims.get("app-auth");
+                LinkedHashMap<String, String> authorities = (LinkedHashMap<String, String>) appAuthority.get(0);
                 //Create auth object
                 // UsernamePasswordAuthenticationToken: A built-in object, used by spring to represent the current authenticated / being authenticated user.
                 // It needs a list of authorities, which has type of GrantedAuthority interface, where SimpleGrantedAuthority is an implementation of that interface
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(username, null,
-                                authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
-
+                                authorities.values().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
                 //authenticate user
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
-//            request.setAttribute("claims", claims);
-//            request.setAttribute("booking", request.getParameter("id"));
-
         }catch (JwtException | IllegalArgumentException e){
             SecurityContextHolder.clearContext();
         }

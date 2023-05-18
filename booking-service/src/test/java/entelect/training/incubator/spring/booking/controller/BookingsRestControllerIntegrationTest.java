@@ -56,7 +56,11 @@ public class BookingsRestControllerIntegrationTest {
 
     @Test
     public void whenValidInput_thenCreateBooking() throws Exception {
-        createTestBooking();
+        Booking booking = new Booking();
+        booking.setCustomerId(TEST_CUSTOMER_ID);
+        booking.setFlightId(TEST_FLIGHT_ID);
+
+        mvc.perform(post("/bookings").contentType(MediaType.APPLICATION_JSON).content(toJson(booking)));
 
         List<Booking> found = (List<Booking>) repository.findAll();
         assertThat(found).hasSize(1);

@@ -20,6 +20,7 @@ jwt:
 application:
   jwt-token:
     message: 'Login Successful'
+    expiry-period: 6
 server:
   port: 8210
   error:

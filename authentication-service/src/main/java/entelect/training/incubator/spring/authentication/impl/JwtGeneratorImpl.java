@@ -2,7 +2,6 @@ package entelect.training.incubator.spring.authentication.impl;
 
 import entelect.training.incubator.spring.authentication.JwtGeneratorInterface;
 import entelect.training.incubator.spring.authentication.model.User;
-import entelect.training.incubator.spring.authentication.service.UserService;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Jwts;
 
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class JwtGeneratorImpl implements JwtGeneratorInterface {
@@ -20,11 +18,11 @@ public class JwtGeneratorImpl implements JwtGeneratorInterface {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${application.jwttoken.message}")
-    private String message;
+    @Value("${application.jwttoken.expiry-period}")
+    private Long expiryPeriod;
 
     @Override
-    public Map<String, String> generateToken(User user) {
+    public String generateToken(User user) {
         LOGGER.info("new role created for user:: " + user.getRole().name());
         String jwtToken = "";
         jwtToken = Jwts.builder()
@@ -33,9 +31,13 @@ public class JwtGeneratorImpl implements JwtGeneratorInterface {
                 .setIssuedAt(new Date())
                 .signWith(SignatureAlgorithm.HS256, "secret")
                 .compact();
-        Map<String, String> jwtTokenGen =  new HashMap<>();
-        jwtTokenGen.put("token", jwtToken);
-        jwtTokenGen.put("message", message);
-        return jwtTokenGen;
+
+        return jwtToken;
+    }
+
+    public LocalDateTime getTokenExpiryDate() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiryDate = now.plusHours(expiryPeriod);
+        return  expiryDate;
     }
 }

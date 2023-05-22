@@ -2,8 +2,10 @@ package entelect.training.incubator.spring.authentication;
 
 import entelect.training.incubator.spring.authentication.model.User;
 
-import java.util.Map;
+import java.time.LocalDateTime;
 
 public interface JwtGeneratorInterface {
-    Map<String, String> generateToken(User user);
+    String generateToken(User user);
+
+    LocalDateTime getTokenExpiryDate();
 }

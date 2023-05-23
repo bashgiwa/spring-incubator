@@ -22,6 +22,7 @@ import org.springframework.security.config.http.MatcherType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,8 +32,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BookingServiceApplication.class)
@@ -60,11 +60,13 @@ public class BookingsRestControllerIntegrationTest {
         booking.setCustomerId(TEST_CUSTOMER_ID);
         booking.setFlightId(TEST_FLIGHT_ID);
 
-        mvc.perform(post("/bookings").contentType(MediaType.APPLICATION_JSON).content(toJson(booking)));
-
-        List<Booking> found = (List<Booking>) repository.findAll();
-        assertThat(found).hasSize(1);
-        assertThat(found.get(0).getCustomerId()).isEqualTo(TEST_CUSTOMER_ID);
+        mvc.perform(post("/bookings").contentType(MediaType.APPLICATION_JSON).content(toJson(booking)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.customerId").value(TEST_CUSTOMER_ID))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flightId").value(TEST_FLIGHT_ID))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.referenceNumber").isNotEmpty())
+                .andDo(print());
     }
 
     @Test
@@ -72,9 +74,9 @@ public class BookingsRestControllerIntegrationTest {
         createTestBooking();
 
         mvc.perform(get("/bookings/1").contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)));
+                .andExpect(jsonPath("$.id", is(1)))
+                .andDo(print());
     }
 
     @Test

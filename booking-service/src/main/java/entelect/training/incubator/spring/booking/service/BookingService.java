@@ -10,6 +10,7 @@ import entelect.training.incubator.spring.booking.response.CustomerSubscription;
 import entelect.training.incubator.spring.booking.response.FlightSubscription;
 import entelect.training.incubator.spring.booking.rewards.RewardsClient;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
+import entelect.training.incubator.spring.booking.rewards.stub.RewardsBalanceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
@@ -22,6 +23,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.ws.soap.SoapMessage;
+import org.springframework.ws.soap.client.SoapFaultClientException;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -105,7 +108,10 @@ public class BookingService {
                 .get()
                 .uri(String.join("","http://localhost:8201/customers/", id))
                 .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, error -> Mono.error(new RuntimeException("Flight not found")))
+                .onStatus(HttpStatusCode::is4xxClientError, error -> {
+                    LOGGER.error("Customer with id:  " + id + " not found!");
+                    return Mono.error(new RuntimeException("Customer with id: " + id + " not found. " + error));
+                })
                 .onStatus(HttpStatusCode::is5xxServerError, error -> Mono.error(new RuntimeException("Server error")))
                 .toEntity(CustomerSubscription.class).block();
 
@@ -118,24 +124,36 @@ public class BookingService {
                 .get()
                 .uri(String.join("","http://localhost:8202/flights/", id))
                 .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, error -> Mono.error(new RuntimeException("Flight not found")))
+                .onStatus(HttpStatusCode::is4xxClientError, error -> {
+                    LOGGER.error("Flight with id  " + id + " not found!");
+                    return Mono.error(new RuntimeException("Flight with id : " + id + " not found. " + error));
+                })
                 .onStatus(HttpStatusCode::is5xxServerError, error -> Mono.error(new RuntimeException("Server error")))
                 .toEntity(FlightSubscription.class).block();
 
         return flight;
     }
 
-    public void doSOAPHandshake(CustomerSubscription customer, FlightSubscription flight) {
-        LOGGER.info("attempt soap handshake");
-        CaptureRewardsResponse response = rewardsClient.captureRewards(BigDecimal.valueOf((double) flight.getSeatCost()),
-                customer.getPassportNumber());
+    public void sendRewardsInformation(BigDecimal amount, String passportNumber) {
+        try {
+            LOGGER.info("attempt soap handshake with loyalty service");
+            CaptureRewardsResponse captureResponse = rewardsClient.captureRewards(amount,
+                    passportNumber);
 
-        LOGGER.info("soap handshake completed " + response.getBalance());
+            RewardsBalanceResponse balanceResponse = rewardsClient.rewardsBalance(passportNumber);
+
+            LOGGER.info("soap handshake completed " + captureResponse.getBalance() + balanceResponse.getBalance());
+        }catch (SoapFaultClientException ex) {
+             LOGGER.error("Unable to complete soap handshake: " + ex.getFaultStringOrReason());
+             ex.printStackTrace();
+//            throw new RuntimeException(ex);
+        }
+
     }
 
     public void onBookingCreated(CustomerSubscription customer, FlightSubscription flight) {
         sendBookingNotification(customer, flight);
 
-        doSOAPHandshake(customer, flight);
+        sendRewardsInformation(BigDecimal.valueOf((double) flight.getSeatCost()), customer.getPassportNumber());
     }
 }

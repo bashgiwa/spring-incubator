@@ -32,14 +32,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
         try{
             //validate token
-            Claims claims = Jwts.parser().setSigningKey("secret").parseClaimsJws(token).getBody();
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey("secret")
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
             String username = claims.getSubject();
             if(username != null){
                 ArrayList appAuthority = (ArrayList) claims.get("app-auth");
                 LinkedHashMap<String, String> authorities = (LinkedHashMap<String, String>) appAuthority.get(0);
                 //Create auth object
-                // UsernamePasswordAuthenticationToken: A built-in object, used by spring to represent the current authenticated / being authenticated user.
-                // It needs a list of authorities, which has type of GrantedAuthority interface, where SimpleGrantedAuthority is an implementation of that interface
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(username, null,
                                 authorities.values().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));

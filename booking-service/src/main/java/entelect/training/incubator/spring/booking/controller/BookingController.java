@@ -49,11 +49,13 @@ public class BookingController {
         final ResponseEntity<CustomerSubscription> customer = bookingService.getCustomerDetailsById(booking.getCustomerId().toString());
         if(customer.getStatusCode() == HttpStatus.NOT_FOUND){
             LOGGER.trace("Customer with " + booking.getCustomerId() + "not found");
+            return ResponseEntity.notFound().build();
         }
 
         final ResponseEntity<FlightSubscription> flight = bookingService.getFlightDetailsById(booking.getFlightId().toString());
         if(flight.getStatusCode() == HttpStatus.NOT_FOUND){
             LOGGER.trace("Flight with " + booking.getCustomerId() + "not found");
+            return ResponseEntity.notFound().build();
         }
 
         final Booking savedBooking = bookingService.createBooking(booking);

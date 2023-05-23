@@ -45,7 +45,7 @@ public class BookingController {
     ResponseEntity<?> createBooking(@RequestBody Booking booking) {
         LOGGER.info("Processing booking creation request for ");
 
-
+      /**
         final ResponseEntity<CustomerSubscription> customer = bookingService.getCustomerDetailsById(booking.getCustomerId().toString());
         if(customer.getStatusCode() == HttpStatus.NOT_FOUND){
             LOGGER.trace("Customer with " + booking.getCustomerId() + "not found");
@@ -57,11 +57,18 @@ public class BookingController {
             LOGGER.trace("Flight with " + booking.getCustomerId() + "not found");
             return ResponseEntity.notFound().build();
         }
+      **/
 
         final Booking savedBooking = bookingService.createBooking(booking);
         LOGGER.trace("Booking created" + savedBooking);
 
-        bookingService.onBookingCreated(customer.getBody(), flight.getBody());
+        //bookingService.onBookingCreated(customer.getBody(), flight.getBody());
+        /** testing starts **/
+        Double amount = 0.00;
+        String passportNumber = "123asdg";
+
+        bookingService.onBookingCreated(amount, passportNumber);
+        /** testing ends**/
 
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }

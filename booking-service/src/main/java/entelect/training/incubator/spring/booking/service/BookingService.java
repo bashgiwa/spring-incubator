@@ -145,15 +145,22 @@ public class BookingService {
             LOGGER.info("soap handshake completed " + captureResponse.getBalance() + balanceResponse.getBalance());
         }catch (SoapFaultClientException ex) {
              LOGGER.error("Unable to complete soap handshake: " + ex.getFaultStringOrReason());
-             ex.printStackTrace();
-//            throw new RuntimeException(ex);
+             //ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
 
     }
 
+    /**
     public void onBookingCreated(CustomerSubscription customer, FlightSubscription flight) {
         sendBookingNotification(customer, flight);
 
         sendRewardsInformation(BigDecimal.valueOf((double) flight.getSeatCost()), customer.getPassportNumber());
+    }
+     **/
+
+    public void onBookingCreated(Double seatCost, String passportNumber) {
+
+        sendRewardsInformation(BigDecimal.valueOf((double) seatCost), passportNumber);
     }
 }

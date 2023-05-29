@@ -29,7 +29,7 @@ public class JwtGeneratorImpl implements JwtGeneratorInterface {
                 .setSubject(user.getUsername())
                 .claim("app-auth", user.getAuthorities())
                 .setIssuedAt(new Date())
-                .signWith(SignatureAlgorithm.HS256, "secret")
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
 
         return jwtToken;

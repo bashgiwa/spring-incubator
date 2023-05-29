@@ -1,5 +1,7 @@
 package entelect.training.incubator.spring.booking.controller;
 
+import entelect.training.incubator.spring.booking.exceptions.CustomDataNotFoundException;
+import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.response.CustomerSubscription;
@@ -13,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,29 +35,22 @@ public class BookingController {
             @ApiResponse(responseCode = "201", description = "New booking created",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Booking.class)) }),
-            @ApiResponse(responseCode = "404", description = "Unable to create booking, invalid customer or flight id",
+            @ApiResponse(responseCode = "404", description = "Invalid customer or flight id supplied",
                     content = @Content) })
     @PostMapping
     ResponseEntity<?> createBooking(@RequestBody Booking booking) {
         log.info("Processing booking creation request for ");
 
+        if(booking.getCustomerId() == null || booking.getFlightId() == null)
+            throw new CustomParameterConstraintException("Invalid customer or flight id supplied");
 
-        final ResponseEntity<CustomerSubscription> customer = bookingService.getCustomerDetailsById(booking.getCustomerId().toString());
-        if(customer.getStatusCode() == HttpStatus.NOT_FOUND){
-            log.trace("Customer with " + booking.getCustomerId() + "not found");
-            return ResponseEntity.notFound().build();
-        }
-
-        final ResponseEntity<FlightSubscription> flight = bookingService.getFlightDetailsById(booking.getFlightId().toString());
-        if(flight.getStatusCode() == HttpStatus.NOT_FOUND){
-            log.trace("Flight with " + booking.getCustomerId() + "not found");
-            return ResponseEntity.notFound().build();
-        }
+        ResponseEntity<?> customer = bookingService.getCustomerDetailsById(booking.getCustomerId().toString());
+        ResponseEntity<?> flight = bookingService.getFlightDetailsById(booking.getFlightId().toString());
 
         final Booking savedBooking = bookingService.createBooking(booking);
-        log.trace("Booking created" + savedBooking);
+        log.trace("Booking created " + savedBooking);
 
-        bookingService.onBookingCreated(customer.getBody(), flight.getBody());
+        bookingService.onBookingCreated((CustomerSubscription) customer.getBody(), (FlightSubscription) flight.getBody());
 
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
@@ -75,13 +69,11 @@ public class BookingController {
         log.info("Get booking.. ");
         Optional<Booking> booking = bookingService.getBooking(id);
 
-        if(booking.isPresent()) {
-            log.trace("Booking found , id:: " + id);
-            return new ResponseEntity<>(booking, HttpStatus.OK);
+        if(booking.isEmpty()) {
+            throw new CustomDataNotFoundException("Booking with id " + id + " does not exist");
         }
-
-        log.trace("Booking does not exist");
-        return ResponseEntity.notFound().build();
+        log.trace("Booking found , id:: " + id);
+        return new ResponseEntity<>(booking, HttpStatus.OK);
     }
 
     @Operation(summary = "Find booking by customer id, or by reference number")
@@ -100,13 +92,13 @@ public class BookingController {
 
         List<Booking> bookings = bookingService.searchBookings(searchRequest);
 
-        if(!bookings.isEmpty()) {
-            log.trace("Found bookings: {}", bookings);
-            return ResponseEntity.ok(bookings);
+        if(bookings.isEmpty()) {
+            log.trace("Booking or bookings not found");
+            throw new CustomDataNotFoundException("Booking or bookings not found");
         }
 
-        log.trace("No bookings found");
-        return ResponseEntity.notFound().build();
+        log.trace("Found bookings: {}", bookings);
+        return ResponseEntity.ok(bookings);
     }
 
     @Operation(summary = "Delete a booking by id")
@@ -116,20 +108,20 @@ public class BookingController {
                             schema = @Schema(implementation = Booking.class)) }),
             @ApiResponse(responseCode = "400", description = "Invalid id supplied",
                     content = @Content),
-            @ApiResponse(responseCode = "404", description = "Booking or bookings not found",
+            @ApiResponse(responseCode = "404", description = "Booking not found",
                     content = @Content) })
     @DeleteMapping("{id}")
     ResponseEntity<?> deleteBooking(@PathVariable Integer id) {
         log.info("Get booking.. ");
         Optional<Booking> booking = bookingService.getBooking(id);
 
-        if(booking.isPresent()) {
-            log.trace("Deleting booking data from db:: " + id);
-            bookingService.deleteBooking(id);
-            return new ResponseEntity<HttpStatus>(HttpStatus.NO_CONTENT);
+        if(booking.isEmpty()) {
+            log.info("Booking does not exist");
+            throw new CustomDataNotFoundException("Booking not found");
         }
 
-        log.trace("Booking does not exist");
-        return ResponseEntity.notFound().build();
+        log.trace("Deleting booking data from db:: " + id);
+        bookingService.deleteBooking(id);
+        return new ResponseEntity<HttpStatus>(HttpStatus.NO_CONTENT);
     }
 }

@@ -1,5 +1,7 @@
 package entelect.training.incubator.spring.booking.config;
 
+import entelect.training.incubator.spring.booking.customer.CustomerCommunicator;
+import entelect.training.incubator.spring.booking.flight.FlightCommunicator;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,6 +31,16 @@ public class BookingConfig {
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public FlightCommunicator flightCommunicator() {
+        return new FlightCommunicator();
+    }
+
+    @Bean
+    public CustomerCommunicator customerCommunicator() {
+        return new CustomerCommunicator();
     }
 
 }

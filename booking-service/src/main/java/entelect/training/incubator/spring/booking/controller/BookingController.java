@@ -11,9 +11,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,18 +21,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("bookings")
+@RequiredArgsConstructor
 public class BookingController {
-    private final Logger LOGGER = LoggerFactory.getLogger(BookingController.class);
 
     private final BookingService bookingService;
-
-    @Autowired
-    BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
-
 
     @Operation(summary = "Create a new booking")
     @ApiResponses(value = {
@@ -43,23 +38,23 @@ public class BookingController {
                     content = @Content) })
     @PostMapping
     ResponseEntity<?> createBooking(@RequestBody Booking booking) {
-        LOGGER.info("Processing booking creation request for ");
+        log.info("Processing booking creation request for ");
 
 
         final ResponseEntity<CustomerSubscription> customer = bookingService.getCustomerDetailsById(booking.getCustomerId().toString());
         if(customer.getStatusCode() == HttpStatus.NOT_FOUND){
-            LOGGER.trace("Customer with " + booking.getCustomerId() + "not found");
+            log.trace("Customer with " + booking.getCustomerId() + "not found");
             return ResponseEntity.notFound().build();
         }
 
         final ResponseEntity<FlightSubscription> flight = bookingService.getFlightDetailsById(booking.getFlightId().toString());
         if(flight.getStatusCode() == HttpStatus.NOT_FOUND){
-            LOGGER.trace("Flight with " + booking.getCustomerId() + "not found");
+            log.trace("Flight with " + booking.getCustomerId() + "not found");
             return ResponseEntity.notFound().build();
         }
 
         final Booking savedBooking = bookingService.createBooking(booking);
-        LOGGER.trace("Booking created" + savedBooking);
+        log.trace("Booking created" + savedBooking);
 
         bookingService.onBookingCreated(customer.getBody(), flight.getBody());
 
@@ -77,15 +72,15 @@ public class BookingController {
                 content = @Content) })
     @GetMapping("{id}")
     ResponseEntity<?> getBooking(@Parameter(description = "id of booking to get") @PathVariable Integer id) {
-        LOGGER.info("Get booking.. ");
+        log.info("Get booking.. ");
         Optional<Booking> booking = bookingService.getBooking(id);
 
         if(booking.isPresent()) {
-            LOGGER.trace("Booking found , id:: " + id);
+            log.trace("Booking found , id:: " + id);
             return new ResponseEntity<>(booking, HttpStatus.OK);
         }
 
-        LOGGER.trace("Booking does not exist");
+        log.trace("Booking does not exist");
         return ResponseEntity.notFound().build();
     }
 
@@ -101,16 +96,16 @@ public class BookingController {
     @PostMapping("/search")
     ResponseEntity<?> searchBookings(@Parameter(description = "search parameters to find booking or bookings, booking reference number or customer id")
                                      @RequestBody BookingSearchRequest searchRequest) {
-        LOGGER.info("Processing booking search request for request {}", searchRequest);
+        log.info("Processing booking search request for request {}", searchRequest);
 
         List<Booking> bookings = bookingService.searchBookings(searchRequest);
 
         if(!bookings.isEmpty()) {
-            LOGGER.trace("Found bookings: {}", bookings);
+            log.trace("Found bookings: {}", bookings);
             return ResponseEntity.ok(bookings);
         }
 
-        LOGGER.trace("No bookings found");
+        log.trace("No bookings found");
         return ResponseEntity.notFound().build();
     }
 
@@ -125,16 +120,16 @@ public class BookingController {
                     content = @Content) })
     @DeleteMapping("{id}")
     ResponseEntity<?> deleteBooking(@PathVariable Integer id) {
-        LOGGER.info("Get booking.. ");
+        log.info("Get booking.. ");
         Optional<Booking> booking = bookingService.getBooking(id);
 
         if(booking.isPresent()) {
-            LOGGER.trace("Deleting booking data from db:: " + id);
+            log.trace("Deleting booking data from db:: " + id);
             bookingService.deleteBooking(id);
             return new ResponseEntity<HttpStatus>(HttpStatus.NO_CONTENT);
         }
 
-        LOGGER.trace("Booking does not exist");
+        log.trace("Booking does not exist");
         return ResponseEntity.notFound().build();
     }
 }

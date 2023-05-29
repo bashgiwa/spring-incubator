@@ -11,8 +11,8 @@ import entelect.training.incubator.spring.booking.response.FlightSubscription;
 import entelect.training.incubator.spring.booking.rewards.RewardsClient;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
 import entelect.training.incubator.spring.booking.rewards.stub.RewardsBalanceResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.SoapFaultClientException;
 import reactor.core.publisher.Mono;
 
@@ -31,10 +30,11 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Supplier;
 
+@Slf4j
 @Service
+@AllArgsConstructor
 @CacheConfig(cacheNames = {"bookings"})
 public class BookingService {
-    private final Logger LOGGER = LoggerFactory.getLogger(BookingService.class);
     private final RabbitTemplate rabbitTemplate;
     private final TopicExchange exchange;
     private final BookingRepository bookingRepository;
@@ -70,7 +70,7 @@ public class BookingService {
 
         Optional<Booking> bookingOptional = bookingRepository.findById(id);
         if(bookingOptional.isPresent()) {
-            LOGGER.info("Booking data fetched from db:: " + id);
+            log.info("Booking data fetched from db:: " + id);
         }
 
         return Optional.ofNullable(bookingOptional.orElse(null));
@@ -78,7 +78,7 @@ public class BookingService {
 
     @Cacheable(value = "bookings")
     public List<Booking> searchBookings(BookingSearchRequest searchRequest) {
-        LOGGER.info("Booking search data fetched from db:: " + searchRequest.getSearchType());
+        log.info("Booking search data fetched from db:: " + searchRequest.getSearchType());
         Map<SearchType, Supplier<List<Booking>>> searchStrategies = new HashMap<>();
 
         searchStrategies.put(SearchType.REFERENCE_NUMBER_SEARCH, () -> bookingRepository.findBookingByReferenceNumber(searchRequest.getReferenceNumber()));
@@ -100,7 +100,7 @@ public class BookingService {
         String routingKey = "booking.created";
 
         rabbitTemplate.convertAndSend(exchange.getName(), routingKey, notification);
-        LOGGER.info("rabbitmq messaging completed");
+        log.info("rabbitmq messaging completed");
     }
     public ResponseEntity<CustomerSubscription> getCustomerDetailsById(String id) {
 
@@ -109,7 +109,7 @@ public class BookingService {
                 .uri(String.join("","http://localhost:8201/customers/", id))
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, error -> {
-                    LOGGER.error("Customer with id:  " + id + " not found!");
+                    log.error("Customer with id:  " + id + " not found!");
                     return Mono.error(new RuntimeException("Customer with id: " + id + " not found. " + error));
                 })
                 .onStatus(HttpStatusCode::is5xxServerError, error -> Mono.error(new RuntimeException("Server error")))
@@ -125,7 +125,7 @@ public class BookingService {
                 .uri(String.join("","http://localhost:8202/flights/", id))
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, error -> {
-                    LOGGER.error("Flight with id  " + id + " not found!");
+                    log.error("Flight with id  " + id + " not found!");
                     return Mono.error(new RuntimeException("Flight with id : " + id + " not found. " + error));
                 })
                 .onStatus(HttpStatusCode::is5xxServerError, error -> Mono.error(new RuntimeException("Server error")))
@@ -136,15 +136,15 @@ public class BookingService {
 
     public void sendRewardsInformation(BigDecimal amount, String passportNumber) {
         try {
-            LOGGER.info("attempt soap handshake with loyalty service");
+            log.info("attempt soap handshake with loyalty service");
             CaptureRewardsResponse captureResponse = rewardsClient.captureRewards(amount,
                     passportNumber);
 
             RewardsBalanceResponse balanceResponse = rewardsClient.rewardsBalance(passportNumber);
 
-            LOGGER.info("soap handshake completed " + captureResponse.getBalance() + balanceResponse.getBalance());
+            log.info("soap handshake completed " + captureResponse.getBalance() + balanceResponse.getBalance());
         }catch (SoapFaultClientException ex) {
-             LOGGER.error("Unable to complete soap handshake: " + ex.getFaultStringOrReason());
+             log.error("Unable to complete soap handshake: " + ex.getFaultStringOrReason());
              ex.printStackTrace();
 //            throw new RuntimeException(ex);
         }

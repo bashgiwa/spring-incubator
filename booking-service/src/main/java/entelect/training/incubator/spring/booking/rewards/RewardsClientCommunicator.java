@@ -33,14 +33,17 @@ public class RewardsClientCommunicator implements RewardsDetails{
 
         try {
             log.info("attempt soap handshake with loyalty service");
+
             CaptureRewardsResponse rewards = getRewards(amount, passportNumber);
             RewardsBalanceResponse rewardsBalance = getRewardsBalance(passportNumber);
 
-            log.info("soap handshake completed " + rewards.getBalance() + rewardsBalance.getBalance());
+            if(rewards != null && rewardsBalance != null) {
+                log.info("soap handshake completed " + rewards.getBalance() + rewardsBalance.getBalance());
+            }
+
         }catch (SoapFaultClientException ex) {
             log.error("Unable to complete soap handshake: " + ex.getFaultStringOrReason());
-            ex.printStackTrace();
-//            throw new RuntimeException(ex);
+           throw new RuntimeException(ex);
         }
 
     }

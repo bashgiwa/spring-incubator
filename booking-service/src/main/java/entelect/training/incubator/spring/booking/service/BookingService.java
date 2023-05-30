@@ -86,8 +86,10 @@ public class BookingService {
         log.info("Booking search data fetched from db:: " + searchRequest.getSearchType());
         Map<SearchType, Supplier<List<Booking>>> searchStrategies = new HashMap<>();
 
-        searchStrategies.put(SearchType.REFERENCE_NUMBER_SEARCH, () -> bookingRepository.findBookingByReferenceNumber(searchRequest.getReferenceNumber()));
-        searchStrategies.put(SearchType.CUSTOMER_ID_SEARCH, () -> bookingRepository.findBookingsByCustomerId(searchRequest.getCustomerId()));
+        searchStrategies.put(SearchType.REFERENCE_NUMBER_SEARCH,
+                () -> bookingRepository.findBookingByReferenceNumber(searchRequest.getReferenceNumber()));
+        searchStrategies.put(SearchType.CUSTOMER_ID_SEARCH,
+                () -> bookingRepository.findBookingsByCustomerId(searchRequest.getCustomerId()));
 
         return searchStrategies.get(searchRequest.getSearchType()).get();
     }
@@ -111,7 +113,13 @@ public class BookingService {
     }
 
     public void onBookingCreated(CustomerSubscription customer, FlightSubscription flight) {
-        sendBookingNotification(customer, flight);
-       rewardsComms.sendRewardsInformation(BigDecimal.valueOf((double) flight.getSeatCost()), customer.getPassportNumber());
+        try {
+            sendBookingNotification(customer, flight);
+            rewardsComms.sendRewardsInformation(BigDecimal.valueOf((double) flight.getSeatCost()),
+                    customer.getPassportNumber());
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();
+        }
+        log.info("Booking created successfully " );
     }
 }

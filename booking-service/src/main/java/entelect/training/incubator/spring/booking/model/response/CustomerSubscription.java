@@ -1,4 +1,4 @@
-package entelect.training.incubator.spring.booking.response;
+package entelect.training.incubator.spring.booking.model.response;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -11,10 +11,11 @@ import reactor.netty.http.client.HttpClient;
 @Configuration
 public class WebFluxConfig implements WebFluxConfigurer {
 
-    @Bean
-    public WebClient webClient() {
-        return WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)))
-                .build();
-    }
+  @Bean
+  public WebClient webClient() {
+    return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(
+            HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)))
+        .build();
+  }
 }

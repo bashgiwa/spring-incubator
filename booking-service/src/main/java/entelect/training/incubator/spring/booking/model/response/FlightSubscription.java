@@ -1,9 +1,8 @@
-package entelect.training.incubator.spring.booking.response;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package entelect.training.incubator.spring.booking.model.response;
 
 import java.time.LocalDateTime;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor

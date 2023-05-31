@@ -12,22 +12,24 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig  {
+public class SecurityConfig {
 
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers(HttpMethod.GET, "/bookings/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/bookings").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(new AuthTokenFilter(), UsernamePasswordAuthenticationFilter.class)
-                .httpBasic();
-        return http.build();
-    };
+  @Bean
+  SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
+    http.csrf().disable()
+        .authorizeHttpRequests()
+        .requestMatchers(HttpMethod.GET, "/bookings/**").permitAll()
+        .requestMatchers(HttpMethod.POST, "/bookings").permitAll()
+        .anyRequest().authenticated()
+        .and()
+        .sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
+        .addFilterBefore(new AuthTokenFilter(),
+            UsernamePasswordAuthenticationFilter.class)
+        .httpBasic();
+    return http.build();
+  }
+
 }
 

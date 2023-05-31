@@ -17,10 +17,25 @@ spring:
     swagger-ui:
       path=/swagger-ui.html
 
+jwt:
+  secret: secret
+  authority: app-auth
 
 server:
   port: 8209
   error:
     include-message: always
+
+customer-service:
+  auth:
+    username: user
+    password: the_cake
+
+notification-service:
+  comms:
+    routing-key: booking.created
+
+
+
 
 

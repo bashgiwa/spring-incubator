@@ -1,7 +1,6 @@
 package entelect.training.incubator.spring.booking.rewards;
 
-import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
-import org.assertj.core.api.Assertions;
+import entelect.training.incubator.spring.booking.communicator.rewards.RewardsClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

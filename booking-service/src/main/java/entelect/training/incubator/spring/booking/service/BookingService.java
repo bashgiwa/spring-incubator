@@ -1,16 +1,22 @@
 package entelect.training.incubator.spring.booking.service;
 
-import entelect.training.incubator.spring.booking.customer.CustomerCommunicator;
-import entelect.training.incubator.spring.booking.flight.FlightCommunicator;
+import entelect.training.incubator.spring.booking.communicator.external.impl.CustomerCommunicator;
+import entelect.training.incubator.spring.booking.communicator.external.impl.FlightCommunicator;
+import entelect.training.incubator.spring.booking.communicator.notifications.impl.NotificationDetailsCommunicator;
+import entelect.training.incubator.spring.booking.communicator.rewards.RewardsClient;
+import entelect.training.incubator.spring.booking.communicator.rewards.impl.RewardsClientCommunicator;
 import entelect.training.incubator.spring.booking.model.Booking;
-import entelect.training.incubator.spring.booking.model.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.SearchType;
-import entelect.training.incubator.spring.booking.notification.NotificationDetailsCommunicator;
+import entelect.training.incubator.spring.booking.model.request.BookingSearchRequest;
+import entelect.training.incubator.spring.booking.model.response.CustomerSubscription;
+import entelect.training.incubator.spring.booking.model.response.FlightSubscription;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
-import entelect.training.incubator.spring.booking.response.CustomerSubscription;
-import entelect.training.incubator.spring.booking.response.FlightSubscription;
-import entelect.training.incubator.spring.booking.rewards.RewardsClient;
-import entelect.training.incubator.spring.booking.rewards.RewardsClientCommunicator;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,105 +27,100 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 @Slf4j
 @Service
 @AllArgsConstructor
 @CacheConfig(cacheNames = {"bookings"})
 public class BookingService {
 
-    private final BookingRepository bookingRepository;
-    private final BookingReferenceGenerator referenceGenerator;
+  private final BookingRepository bookingRepository;
+  private final BookingReferenceGenerator referenceGenerator;
+  @Autowired
+  private RewardsClient rewardsClient;
+  @Autowired
+  private WebClient webClient;
+  @Autowired
+  private NotificationDetailsCommunicator notificationComms;
+  @Autowired
+  private FlightCommunicator flightComms;
+  @Autowired
+  private CustomerCommunicator customerComms;
+  @Autowired
+  private RewardsClientCommunicator rewardsComms;
 
-    @Autowired
-    private NotificationDetailsCommunicator notificationComms;
+  @Autowired
+  BookingService(BookingRepository bookingRepository) {
+    this.bookingRepository = bookingRepository;
+    this.referenceGenerator = new BookingReferenceGenerator();
+  }
 
-    @Autowired
-    private FlightCommunicator flightComms;
+  public Booking createBooking(final Booking booking) {
+    booking.setReferenceNumber(referenceGenerator.generate());
+    return bookingRepository.save(booking);
+  }
 
-    @Autowired
-    private CustomerCommunicator customerComms;
+  public List<Booking> getBookings() {
+    return bookingRepository.findAll();
+  }
 
-    @Autowired
-    private RewardsClientCommunicator rewardsComms;
+  @Cacheable(key = "#id")
+  public Optional<Booking> getBooking(final Integer id) {
 
-    @Autowired
-    RewardsClient rewardsClient;
-
-    @Autowired
-    WebClient webClient;
-
-    @Autowired
-    BookingService(BookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
-        this.referenceGenerator = new BookingReferenceGenerator();
+    Optional<Booking> bookingOptional = bookingRepository.findById(id);
+    if (bookingOptional.isPresent()) {
+      log.info("Booking data fetched from db:: " + id);
     }
 
-    public Booking createBooking(Booking booking) {
-        booking.setReferenceNumber(referenceGenerator.generate());
-        return bookingRepository.save(booking);
+    return Optional.ofNullable(bookingOptional.orElse(null));
+  }
+
+  @Cacheable(value = "bookings")
+  public List<Booking> searchBookings(
+      final BookingSearchRequest searchRequest) {
+    log.info("Booking search data fetched from db:: " +
+        searchRequest.getSearchType());
+    Map<SearchType, Supplier<List<Booking>>> searchStrategies = new HashMap<>();
+
+    searchStrategies.put(SearchType.REFERENCE_NUMBER_SEARCH,
+        () -> bookingRepository.findBookingByReferenceNumber(
+            searchRequest.getReferenceNumber()));
+    searchStrategies.put(SearchType.CUSTOMER_ID_SEARCH,
+        () -> bookingRepository.findBookingsByCustomerId(
+            searchRequest.getCustomerId()));
+
+    return searchStrategies.get(searchRequest.getSearchType()).get();
+  }
+
+  @CacheEvict(key = "#id", allEntries = true)
+  public void deleteBooking(final Integer id) {
+    bookingRepository.deleteById(id);
+  }
+
+  public void sendBookingNotification(CustomerSubscription customer,
+                                      FlightSubscription flight) {
+    notificationComms.sendBookingNotification(flight.getFlightNumber(),
+        customer.getFirstName(), customer.getLastName(),
+        flight.getFlightNumber(), String.valueOf(flight.getDepartureTime()));
+  }
+
+  public ResponseEntity<?> getCustomerDetailsById(final String id) {
+    return customerComms.getDetailsById(id);
+  }
+
+  public ResponseEntity<?> getFlightDetailsById(final String id) {
+    return flightComms.getDetailsById(id);
+  }
+
+  public void onBookingCreated(final CustomerSubscription customer,
+                               final FlightSubscription flight) {
+    try {
+      sendBookingNotification(customer, flight);
+      rewardsComms.sendRewardsInformation(
+          BigDecimal.valueOf((double) flight.getSeatCost()),
+          customer.getPassportNumber());
+    } catch (RuntimeException ex) {
+      ex.printStackTrace();
     }
-
-    public List<Booking> getBookings() {
-        return (List<Booking>) bookingRepository.findAll();
-    }
-
-    @Cacheable(key = "#id")
-    public Optional<Booking> getBooking(Integer id) {
-
-        Optional<Booking> bookingOptional = bookingRepository.findById(id);
-        if(bookingOptional.isPresent()) {
-            log.info("Booking data fetched from db:: " + id);
-        }
-
-        return Optional.ofNullable(bookingOptional.orElse(null));
-    }
-
-    @Cacheable(value = "bookings")
-    public List<Booking> searchBookings(BookingSearchRequest searchRequest) {
-        log.info("Booking search data fetched from db:: " + searchRequest.getSearchType());
-        Map<SearchType, Supplier<List<Booking>>> searchStrategies = new HashMap<>();
-
-        searchStrategies.put(SearchType.REFERENCE_NUMBER_SEARCH,
-                () -> bookingRepository.findBookingByReferenceNumber(searchRequest.getReferenceNumber()));
-        searchStrategies.put(SearchType.CUSTOMER_ID_SEARCH,
-                () -> bookingRepository.findBookingsByCustomerId(searchRequest.getCustomerId()));
-
-        return searchStrategies.get(searchRequest.getSearchType()).get();
-    }
-
-    @CacheEvict(key = "#id", allEntries = true)
-    public void deleteBooking(Integer id) {
-        bookingRepository.deleteById(id);
-    }
-
-    public void sendBookingNotification(CustomerSubscription customer, FlightSubscription flight) {
-        notificationComms.sendBookingNotification(flight.getFlightNumber(),
-                customer.getFirstName(), customer.getLastName(),
-                flight.getFlightNumber(), String.valueOf(flight.getDepartureTime()));
-    }
-    public ResponseEntity<?> getCustomerDetailsById(String id) {
-        return customerComms.getCustomerDetailsById(id);
-    }
-
-    public ResponseEntity<?> getFlightDetailsById(String id) {
-            return flightComms.getFlightDetailsById(id);
-    }
-
-    public void onBookingCreated(CustomerSubscription customer, FlightSubscription flight) {
-        try {
-            sendBookingNotification(customer, flight);
-            rewardsComms.sendRewardsInformation(BigDecimal.valueOf((double) flight.getSeatCost()),
-                    customer.getPassportNumber());
-        }catch (RuntimeException ex) {
-            ex.printStackTrace();
-        }
-        log.info("Booking created successfully " );
-    }
+    log.info("Booking created successfully ");
+  }
 }

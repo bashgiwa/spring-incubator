@@ -1,5 +1,6 @@
-package entelect.training.incubator.spring.booking.model;
+package entelect.training.incubator.spring.booking.model.request;
 
+import entelect.training.incubator.spring.booking.model.SearchType;
 import lombok.Data;
 
 @Data

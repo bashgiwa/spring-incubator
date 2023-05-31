@@ -42,7 +42,7 @@ public class SecurityConfig {
         http.csrf().disable() // !!! Disclaimer: NEVER DISABLE CSRF IN PRODUCTION !!!
                 .authorizeHttpRequests()
                 .requestMatchers(HttpMethod.GET, "/customers/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/customers/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/customers/**").hasAnyRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();

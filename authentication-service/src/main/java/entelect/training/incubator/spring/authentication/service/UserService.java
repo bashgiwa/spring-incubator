@@ -7,6 +7,7 @@ import entelect.training.incubator.spring.authentication.controller.RegisterRequ
 import entelect.training.incubator.spring.authentication.exception.UserNotFoundException;
 import entelect.training.incubator.spring.authentication.model.User;
 import entelect.training.incubator.spring.authentication.repository.UserRepository;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,69 +17,67 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 
 @Service
 public class UserService {
-    @Value("${application.jwttoken.message}")
-    private String message;
+  private final UserRepository userRepository;
+  private final JwtGeneratorInterface jwtGenerator;
+  @Autowired
+  private final AuthenticationManager authManager;
+  @Value("${application.jwttoken.message}")
+  private String message;
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
-    private final UserRepository userRepository;
-    private final JwtGeneratorInterface jwtGenerator;
+  @Autowired
+  public UserService(UserRepository userRepository,
+                     JwtGeneratorInterface jwtGen,
+                     AuthenticationManager authManager) {
+    this.userRepository = userRepository;
+    this.jwtGenerator = jwtGen;
+    this.authManager = authManager;
+  }
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+  public User saveUser(RegisterRequest request) {
+    var user = User.builder()
+        .username(request.getUsername())
+        .password(passwordEncoder.encode(request.getPassword()))
+        .email(request.getEmail())
+        .role(request.getRole())
+        .build();
+    return userRepository.save(user);
+  }
 
-    @Autowired
-    private final AuthenticationManager authManager;
+  public User getUserByNameAndPassword(String name, String password)
+      throws UserNotFoundException {
+    User user = userRepository.findByUsernameAndPassword(name, password);
+    if (user == null) {
+      throw new UserNotFoundException("Invalid user name or password");
+    }
+    return user;
+  }
 
-    @Autowired
-    public UserService(UserRepository userRepository,
-                       JwtGeneratorInterface jwtGen,
-                       AuthenticationManager authManager) {
-        this.userRepository = userRepository;
-        this.jwtGenerator = jwtGen;
-        this.authManager = authManager;
+  public AuthResponse login(LoginRequest request) throws UserNotFoundException {
+    try {
+      UsernamePasswordAuthenticationToken authenticationToken
+          = new UsernamePasswordAuthenticationToken(request.getUsername(),
+          request.getPassword());
+      Authentication authentication =
+          authManager.authenticate(authenticationToken);
+      SecurityContextHolder.getContext().setAuthentication(authentication);
+
+      User user = userRepository.findByUsername(request.getUsername());
+      String token = jwtGenerator.generateToken(user);
+      LocalDateTime expiryDate = jwtGenerator.getTokenExpiryDate();
+      return AuthResponse
+          .builder().username(user.getUsername())
+          .token(String.join(" ", "Bearer", token))
+          .role(user.getRole())
+          .message(message)
+          .expiryDate(expiryDate).build();
+    } catch (Exception ex) {
+      throw new UserNotFoundException("Unable to authenticate user");
     }
 
-    public User saveUser(RegisterRequest request) {
-        var user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .email(request.getEmail())
-                .role(request.getRole())
-                .build();
-        return userRepository.save(user);
-    }
-
-    public User getUserByNameAndPassword(String name, String password) throws UserNotFoundException {
-        User user =  userRepository.findByUsernameAndPassword(name, password);
-        if(user == null) {
-            throw new UserNotFoundException("Invalid user name or password");
-        }
-        return user;
-    }
-
-    public AuthResponse login(LoginRequest request) throws UserNotFoundException {
-        try {
-            UsernamePasswordAuthenticationToken authenticationToken
-                    = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
-            Authentication authentication = authManager.authenticate(authenticationToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            User user = userRepository.findByUsername(request.getUsername());
-            String token = jwtGenerator.generateToken(user);
-            LocalDateTime expiryDate = jwtGenerator.getTokenExpiryDate();
-            return AuthResponse
-                    .builder().username(user.getUsername())
-                    .token(String.join(" ", "Bearer", token))
-                    .role(user.getRole())
-                    .message(message)
-                    .expiryDate(expiryDate).build();
-        }catch(Exception ex) {
-            throw new UserNotFoundException("Unable to authenticate user");
-        }
-
-    }
+  }
 }

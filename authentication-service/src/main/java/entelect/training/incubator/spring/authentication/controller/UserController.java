@@ -1,5 +1,7 @@
 package entelect.training.incubator.spring.authentication.controller;
 
+import entelect.training.incubator.spring.authentication.exception.CustomParameterConstraintException;
+import entelect.training.incubator.spring.authentication.exception.DuplicateUserException;
 import entelect.training.incubator.spring.authentication.exception.UserNotFoundException;
 import entelect.training.incubator.spring.authentication.model.User;
 import entelect.training.incubator.spring.authentication.service.UserService;
@@ -23,25 +25,32 @@ class UserController {
   }
 
   @PostMapping("/login")
-  ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+  ResponseEntity<?> loginUser(@RequestBody LoginRequest request)
+      throws UserNotFoundException {
     try {
       if (request.getUsername() == null || request.getPassword() == null) {
-        return ResponseEntity.notFound().build();
+        throw new CustomParameterConstraintException("Incorrect login details");
       }
+
       AuthResponse response = userService.login(request);
       return new ResponseEntity<>(response, HttpStatus.OK);
     } catch (UserNotFoundException e) {
-      return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+      throw new UserNotFoundException(e.getMessage());
     }
   }
 
   @PostMapping("/register")
   public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
+    final User existingUser = userService.getUserByEmail(request.getEmail());
+    if (existingUser != null ) {
+      throw new DuplicateUserException("User with email " + request.getEmail() + " already exists. Cannot create duplicate user");
+    }
+
     try {
       final User newUser = userService.saveUser(request);
       return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     } catch (Exception e) {
-      return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+      throw new CustomParameterConstraintException(e.getMessage());
     }
   }
 }

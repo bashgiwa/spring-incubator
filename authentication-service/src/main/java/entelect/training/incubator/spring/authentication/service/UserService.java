@@ -4,12 +4,14 @@ import entelect.training.incubator.spring.authentication.JwtGeneratorInterface;
 import entelect.training.incubator.spring.authentication.controller.AuthResponse;
 import entelect.training.incubator.spring.authentication.controller.LoginRequest;
 import entelect.training.incubator.spring.authentication.controller.RegisterRequest;
+import entelect.training.incubator.spring.authentication.exception.DuplicateUserException;
 import entelect.training.incubator.spring.authentication.exception.UserNotFoundException;
 import entelect.training.incubator.spring.authentication.model.User;
 import entelect.training.incubator.spring.authentication.repository.UserRepository;
 import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,6 +56,11 @@ public class UserService {
     if (user == null) {
       throw new UserNotFoundException("Invalid user name or password");
     }
+    return user;
+  }
+
+  public User getUserByEmail(String email) {
+    User user = userRepository.findByEmail(email);
     return user;
   }
 

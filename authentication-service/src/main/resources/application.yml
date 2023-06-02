@@ -16,7 +16,7 @@ spring:
     database: postgresql
     database-platform: org.hibernate
 jwt:
-  secret: secret-key
+  secret: gh1Zfwt0nJQL3TENb8JJHoDwJ624KwYNBCaR11z5GMQ=
 application:
   jwt-token:
     message: 'Login Successful'

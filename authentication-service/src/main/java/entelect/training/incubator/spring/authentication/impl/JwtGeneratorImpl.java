@@ -6,14 +6,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.time.LocalDateTime;
 import java.util.Date;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class JwtGeneratorImpl implements JwtGeneratorInterface {
-  private final Logger LOGGER = LoggerFactory.getLogger(JwtGeneratorImpl.class);
+
   @Value("${jwt.secret}")
   private String secret;
 
@@ -22,7 +22,8 @@ public class JwtGeneratorImpl implements JwtGeneratorInterface {
 
   @Override
   public String generateToken(User user) {
-    LOGGER.info("new role created for user:: " + user.getRole().name());
+    log.info("new role created for user:: " + user.getRole().name());
+
     String jwtToken = "";
     jwtToken = Jwts.builder()
         .setSubject(user.getUsername())

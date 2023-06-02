@@ -1,5 +1,7 @@
 package entelect.training.incubator.spring.booking.security;
 
+import entelect.training.incubator.spring.booking.exceptions.JwtTokenMalformedException;
+import entelect.training.incubator.spring.booking.exceptions.JwtTokenMissingException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -35,7 +37,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     final String token = parseToken(request);
     if (token == null) {
       filterChain.doFilter(request, response);
-      return;
+      throw new JwtTokenMalformedException("Invalid JWT token");
     }
     try {
       //validate token
@@ -65,9 +67,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
   private String parseToken(final HttpServletRequest request) {
     final String authHeader = request.getHeader("Authorization");
-    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-      return authHeader.substring(7);
+
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+      throw new JwtTokenMissingException("No JWT token found in request headers");
     }
-    return null;
+    return authHeader.substring(7);
   }
 }

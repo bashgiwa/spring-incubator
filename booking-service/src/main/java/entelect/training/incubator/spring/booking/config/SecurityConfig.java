@@ -14,18 +14,24 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+  private final AuthTokenFilter authTokenFilter;
+
+  public SecurityConfig(AuthTokenFilter authTokenFilter) {
+    this.authTokenFilter = authTokenFilter;
+  }
+
   @Bean
   SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
     http.csrf().disable()
         .authorizeHttpRequests()
         .requestMatchers(HttpMethod.GET, "/bookings/**").permitAll()
-        .requestMatchers(HttpMethod.POST, "/bookings").permitAll()
+        .requestMatchers(HttpMethod.POST, "/bookings/**").permitAll()
         .anyRequest().authenticated()
         .and()
         .sessionManagement()
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and()
-        .addFilterBefore(new AuthTokenFilter(),
+        .addFilterBefore(authTokenFilter,
             UsernamePasswordAuthenticationFilter.class)
         .httpBasic();
     return http.build();

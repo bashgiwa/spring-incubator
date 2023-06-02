@@ -103,11 +103,11 @@ public class BookingService {
         flight.getFlightNumber(), String.valueOf(flight.getDepartureTime()));
   }
 
-  public ResponseEntity<?> getCustomerDetailsById(final String id) {
+  public ResponseEntity<CustomerSubscription> getCustomerDetailsById(final String id) {
     return customerComms.getDetailsById(id);
   }
 
-  public ResponseEntity<?> getFlightDetailsById(final String id) {
+  public ResponseEntity<FlightSubscription> getFlightDetailsById(final String id) {
     return flightComms.getDetailsById(id);
   }
 

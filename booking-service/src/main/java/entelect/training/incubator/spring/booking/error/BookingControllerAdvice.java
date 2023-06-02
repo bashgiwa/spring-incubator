@@ -7,10 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class BookingControllerAdvice {
     @ExceptionHandler(CustomDataNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleDataNotFoundExceptions(
         final Exception e) {
         HttpStatus status = HttpStatus.NOT_FOUND;
@@ -21,6 +24,7 @@ public class BookingControllerAdvice {
     }
 
     @ExceptionHandler(CustomParameterConstraintException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleInvalidParameters(
         final Exception e) {
         HttpStatus status = HttpStatus.BAD_REQUEST;

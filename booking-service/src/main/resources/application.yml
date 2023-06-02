@@ -1,6 +1,6 @@
 spring:
   cache:
-    cache-names: bookings
+    cache-names: bookings, customers, flights
     caffeine:
       spec: maximumSize=500, expireAfterAccess=30m
   application:

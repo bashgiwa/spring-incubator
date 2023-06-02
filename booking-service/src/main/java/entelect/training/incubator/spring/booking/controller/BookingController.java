@@ -1,5 +1,6 @@
 package entelect.training.incubator.spring.booking.controller;
 
+import entelect.training.incubator.spring.booking.communicator.external.impl.CustomerCommunicator;
 import entelect.training.incubator.spring.booking.exceptions.CustomDataNotFoundException;
 import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
@@ -40,7 +41,9 @@ public class BookingController {
       @ApiResponse(responseCode = "201", description = "New booking created",
           content = {@Content(mediaType = "application/json",
               schema = @Schema(implementation = Booking.class))}),
-      @ApiResponse(responseCode = "404", description = "Invalid customer or flight id supplied",
+      @ApiResponse(responseCode = "400", description = "Invalid customer or flight id supplied",
+          content = @Content),
+      @ApiResponse(responseCode = "404", description = "Unable to retrieve details for customer or flight with given id",
           content = @Content)})
   @PostMapping
   ResponseEntity<?> createBooking(@RequestBody final Booking booking) {
@@ -51,17 +54,16 @@ public class BookingController {
           "Invalid customer or flight id supplied");
     }
 
-    ResponseEntity<?> customer =
+    ResponseEntity<CustomerSubscription> customer =
         bookingService.getCustomerDetailsById(
             booking.getCustomerId().toString());
-    ResponseEntity<?> flight =
+    ResponseEntity<FlightSubscription> flight =
         bookingService.getFlightDetailsById(booking.getFlightId().toString());
 
     final Booking savedBooking = bookingService.createBooking(booking);
     log.trace("Booking created " + savedBooking);
 
-    bookingService.onBookingCreated((CustomerSubscription) customer.getBody(),
-        (FlightSubscription) flight.getBody());
+    bookingService.onBookingCreated(customer.getBody(), flight.getBody());
 
     return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
   }
@@ -79,6 +81,10 @@ public class BookingController {
   ResponseEntity<?> getBooking(
       @Parameter(description = "id of booking to get") @PathVariable
       final Integer id) {
+    if (id == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid booking id supplied");
+    }
     log.info("Get booking.. ");
     Optional<Booking> booking = bookingService.getBooking(id);
 
@@ -95,7 +101,7 @@ public class BookingController {
       @ApiResponse(responseCode = "200", description = "Found booking or bookings",
           content = {@Content(mediaType = "application/json",
               schema = @Schema(implementation = Booking.class))}),
-      @ApiResponse(responseCode = "400", description = "Invalid id supplied",
+      @ApiResponse(responseCode = "400", description = "Invalid search parameters supplied",
           content = @Content),
       @ApiResponse(responseCode = "404", description = "Booking or bookings not found",
           content = @Content)})
@@ -103,6 +109,12 @@ public class BookingController {
   ResponseEntity<?> searchBookings(
       @Parameter(description = "search parameters to find booking or bookings, booking reference number or customer id")
       @RequestBody final BookingSearchRequest searchRequest) {
+
+    if (searchRequest == null || searchRequest.getSearchType() == null
+        || (searchRequest.getReferenceNumber() == null && searchRequest.getCustomerId() == null)) {
+      throw new CustomParameterConstraintException(
+          "Invalid search parameters supplied");
+    }
     log.info("Processing booking search request for request {}", searchRequest);
 
     List<Booking> bookings = bookingService.searchBookings(searchRequest);

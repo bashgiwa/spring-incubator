@@ -7,6 +7,8 @@ import entelect.training.incubator.spring.booking.model.response.CustomerSubscri
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j
+@CacheConfig(cacheNames = {"customers"})
 public class CustomerCommunicator implements ExternalCommunicator {
 
   @Value("${customer-service.auth.username}")
@@ -24,11 +27,12 @@ public class CustomerCommunicator implements ExternalCommunicator {
   @Autowired
   private WebClient webClient;
 
+  @Cacheable(key = "#id")
   @Override
-  public ResponseEntity<?> getDetailsById(final String id) {
+  public ResponseEntity<CustomerSubscription> getDetailsById(final String id) {
     log.info(
         "Initiating call to customer service: attempt to retrieve customer with id  " +
-            id);
+            id + " from customer service");
 
     ResponseEntity<CustomerSubscription> customer = webClient
         .get()
@@ -40,9 +44,9 @@ public class CustomerCommunicator implements ExternalCommunicator {
         .toEntity(CustomerSubscription.class).block();
 
     if (customer.getStatusCode() == HttpStatus.NOT_FOUND) {
-      log.error("Customer with id:" + id + " not found");
+      log.error("Unable to retrieve details for customer with id " + id );
       throw new CustomDataNotFoundException(
-          "Customer with id:" + id + " not found");
+          "Unable to retrieve details for customer with id: " + id );
     }
 
     log.info("SUCCESSFUL : Customer with id:" + id + " found");

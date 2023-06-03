@@ -13,13 +13,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-  springdoc:
-    swagger-ui:
-      path=/swagger-ui.html
-
 jwt:
-  secret: secret
+  secret: gh1Zfwt0nJQL3TENb8JJHoDwJ624KwYNBCaR11z5GMQ=
   authority: app-auth
+  noFilterPaths: /v3/, /swagger-ui/
 
 server:
   port: 8209

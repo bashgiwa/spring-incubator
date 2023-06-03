@@ -13,11 +13,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 public class Booking {
-  @Valid @NotNull
-  Integer customerId;
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
+
+  @Valid @NotNull
+  Integer customerId;
+
   @Valid
   @NotNull
   private Integer flightId;

@@ -3,11 +3,14 @@ package entelect.training.incubator.spring.booking.controller;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entelect.training.incubator.spring.booking.BookingServiceApplication;
+import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.request.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.repository.BookingRepository;
 import entelect.training.incubator.spring.booking.service.BookingService;
+import org.checkerframework.checker.fenum.qual.AwtAlphaCompositingRule;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -52,6 +57,7 @@ public class BookingsRestControllerIntegrationTest {
     @Autowired
     BookingService bookingService;
 
+
     @Test
     public void whenValidInput_thenCreateBooking() throws Exception {
         Booking booking = new Booking();
@@ -65,6 +71,28 @@ public class BookingsRestControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flightId").value(TEST_FLIGHT_ID))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.referenceNumber").isNotEmpty())
                 .andDo(print());
+    }
+
+    @Test
+     public void whenInvalidInput_thenReturnBadRequestResponse() throws Exception {
+        final String expectedMessage = "Invalid customer or flight id supplied";
+
+        Booking booking = new Booking();
+        booking.setCustomerId(null);
+        booking.setFlightId(TEST_FLIGHT_ID);
+
+        mvc.perform(post("/bookings").contentType(MediaType.APPLICATION_JSON).content(toJson(booking)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(expectedMessage))
+            .andDo(print());
+//        Exception exception = assertThrows(CustomParameterConstraintException.class, () -> {
+//
+//        });
+//
+//        String actualMessage = exception.getMessage();
+//
+//        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
@@ -95,6 +123,24 @@ public class BookingsRestControllerIntegrationTest {
     }
 
     @Test
+    public void givenBookings_whenGetBookingsByCustomerId_withInvalidSearchParameters_thenReturnBadRequestResponse()
+        throws Exception {
+        createTestBooking();
+
+        BookingSearchRequest bookingSearchRequest = new BookingSearchRequest();
+        bookingSearchRequest.setSearchType(SearchType.CUSTOMER_ID_SEARCH);
+
+        final String expectedMessage = "Invalid search parameters : No customer id supplied";
+
+        mvc.perform(post("/bookings/search").contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(bookingSearchRequest)))
+            .andExpect(status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(expectedMessage))
+            .andDo(print());
+
+    }
+
+    @Test
     public void givenBookings_whenGetBookingsByReferenceNumber_thenReturnBooking() throws Exception {
         Booking booking = createTestBooking();
         String TEST_REFERENCE_NUMBER = booking.getReferenceNumber();
@@ -108,6 +154,24 @@ public class BookingsRestControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].referenceNumber", is(TEST_REFERENCE_NUMBER)));
+
+    }
+
+    @Test
+    public void givenBookings_whenGetBookingsByReferenceNo_withInvalidSearchParameters_thenReturnBadRequestResponse()
+        throws Exception {
+        createTestBooking();
+
+        BookingSearchRequest bookingSearchRequest = new BookingSearchRequest();
+        bookingSearchRequest.setSearchType(SearchType.REFERENCE_NUMBER_SEARCH);
+
+        final String expectedMessage = "Invalid search parameters : No reference number supplied";
+
+        mvc.perform(post("/bookings/search").contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(bookingSearchRequest)))
+            .andExpect(status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(expectedMessage))
+            .andDo(print());
 
     }
 

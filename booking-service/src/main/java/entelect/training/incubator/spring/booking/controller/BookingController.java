@@ -4,6 +4,7 @@ import entelect.training.incubator.spring.booking.communicator.external.impl.Cus
 import entelect.training.incubator.spring.booking.exceptions.CustomDataNotFoundException;
 import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
+import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.model.request.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.response.CustomerSubscription;
 import entelect.training.incubator.spring.booking.model.response.FlightSubscription;
@@ -112,10 +113,17 @@ public class BookingController {
       @Parameter(description = "search parameters to find booking or bookings, booking reference number or customer id")
       @RequestBody final BookingSearchRequest searchRequest) {
 
-    if (searchRequest == null || searchRequest.getSearchType() == null
-        || (searchRequest.getReferenceNumber() == null && searchRequest.getCustomerId() == null)) {
+    if (searchRequest == null || searchRequest.getSearchType() == null) {
       throw new CustomParameterConstraintException(
           "Invalid search parameters supplied");
+    }
+    if(searchRequest.getSearchType() == SearchType.CUSTOMER_ID_SEARCH && searchRequest.getCustomerId() == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid search parameters : No customer id supplied");
+    }
+    if(searchRequest.getSearchType() == SearchType.REFERENCE_NUMBER_SEARCH && searchRequest.getReferenceNumber() == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid search parameters : No reference number supplied");
     }
     log.info("Processing booking search request for request {}", searchRequest);
 

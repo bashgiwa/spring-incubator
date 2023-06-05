@@ -5,6 +5,7 @@ import entelect.training.incubator.spring.booking.communicator.external.impl.Fli
 import entelect.training.incubator.spring.booking.communicator.notifications.impl.NotificationDetailsCommunicator;
 import entelect.training.incubator.spring.booking.communicator.rewards.RewardsClient;
 import entelect.training.incubator.spring.booking.communicator.rewards.impl.RewardsClientCommunicator;
+import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.model.request.BookingSearchRequest;
@@ -25,7 +26,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+
 
 @Slf4j
 @Service
@@ -35,10 +36,7 @@ public class BookingService {
 
   private final BookingRepository bookingRepository;
   private final BookingReferenceGenerator referenceGenerator;
-  @Autowired
-  private RewardsClient rewardsClient;
-  @Autowired
-  private WebClient webClient;
+
   @Autowired
   private NotificationDetailsCommunicator notificationComms;
   @Autowired
@@ -65,7 +63,10 @@ public class BookingService {
 
   @Cacheable(key = "#id")
   public Optional<Booking> getBooking(final Integer id) {
-
+    if (id == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid booking id supplied");
+    }
     Optional<Booking> bookingOptional = bookingRepository.findById(id);
     if (bookingOptional.isPresent()) {
       log.info("Booking data fetched from db:: " + id);
@@ -77,6 +78,19 @@ public class BookingService {
   @Cacheable(value = "bookings")
   public List<Booking> searchBookings(
       final BookingSearchRequest searchRequest) {
+    if (searchRequest == null || searchRequest.getSearchType() == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid search parameters supplied");
+    }
+    if(searchRequest.getSearchType() == SearchType.CUSTOMER_ID_SEARCH && searchRequest.getCustomerId() == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid search parameters : No customer id supplied");
+    }
+    if(searchRequest.getSearchType() == SearchType.REFERENCE_NUMBER_SEARCH && searchRequest.getReferenceNumber() == null) {
+      throw new CustomParameterConstraintException(
+          "Invalid search parameters : No reference number supplied");
+    }
+
     log.info("Booking search data fetched from db:: " +
         searchRequest.getSearchType());
     Map<SearchType, Supplier<List<Booking>>> searchStrategies = new HashMap<>();

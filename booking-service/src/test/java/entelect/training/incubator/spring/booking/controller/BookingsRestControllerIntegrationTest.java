@@ -30,8 +30,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -86,13 +84,6 @@ public class BookingsRestControllerIntegrationTest {
             .andExpect(content().contentType("application/json"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(expectedMessage))
             .andDo(print());
-//        Exception exception = assertThrows(CustomParameterConstraintException.class, () -> {
-//
-//        });
-//
-//        String actualMessage = exception.getMessage();
-//
-//        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test

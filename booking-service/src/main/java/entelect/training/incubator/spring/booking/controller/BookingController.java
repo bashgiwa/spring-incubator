@@ -84,10 +84,7 @@ public class BookingController {
   ResponseEntity<?> getBooking(
       @Parameter(description = "id of booking to get") @PathVariable
       final Integer id) {
-    if (id == null) {
-      throw new CustomParameterConstraintException(
-          "Invalid booking id supplied");
-    }
+
     log.info("Get booking.. ");
     Optional<Booking> booking = bookingService.getBooking(id);
 
@@ -112,19 +109,6 @@ public class BookingController {
   ResponseEntity<?> searchBookings(
       @Parameter(description = "search parameters to find booking or bookings, booking reference number or customer id")
       @RequestBody final BookingSearchRequest searchRequest) {
-
-    if (searchRequest == null || searchRequest.getSearchType() == null) {
-      throw new CustomParameterConstraintException(
-          "Invalid search parameters supplied");
-    }
-    if(searchRequest.getSearchType() == SearchType.CUSTOMER_ID_SEARCH && searchRequest.getCustomerId() == null) {
-      throw new CustomParameterConstraintException(
-          "Invalid search parameters : No customer id supplied");
-    }
-    if(searchRequest.getSearchType() == SearchType.REFERENCE_NUMBER_SEARCH && searchRequest.getReferenceNumber() == null) {
-      throw new CustomParameterConstraintException(
-          "Invalid search parameters : No reference number supplied");
-    }
     log.info("Processing booking search request for request {}", searchRequest);
 
     List<Booking> bookings = bookingService.searchBookings(searchRequest);

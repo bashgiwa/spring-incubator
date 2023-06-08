@@ -1,5 +1,6 @@
 package entelect.training.incubator.spring.booking.config;
 
+import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsPublisher;
 import entelect.training.incubator.spring.booking.communicator.external.impl.CustomerCommunicator;
 import entelect.training.incubator.spring.booking.communicator.external.impl.FlightCommunicator;
 import org.springframework.amqp.core.TopicExchange;
@@ -7,10 +8,13 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @Configuration
+@EnableAsync
 @EnableCaching
 public class BookingConfig {
 
@@ -44,5 +48,10 @@ public class BookingConfig {
     return new CustomerCommunicator();
   }
 
+  @Bean("SimpleBookingEventsPublisher")
+  public BookingEventsPublisher SimpleBookingEventsPublisher(final ApplicationEventPublisher publisher) {
+    return new BookingEventsPublisher(publisher);
+  }
+  
 }
 

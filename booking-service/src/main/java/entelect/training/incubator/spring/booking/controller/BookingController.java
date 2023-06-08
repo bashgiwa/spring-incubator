@@ -66,7 +66,7 @@ public class BookingController {
     final Booking savedBooking = bookingService.createBooking(booking);
     log.trace("Booking created " + savedBooking);
 
-    bookingService.onBookingCreated(customer.getBody(), flight.getBody());
+    bookingService.onBookingCreated(savedBooking, customer.getBody(), flight.getBody());
 
     return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
   }

@@ -1,16 +1,20 @@
 package entelect.training.incubator.spring.booking.communicator.notifications.impl;
 
+import entelect.training.incubator.spring.booking.communicator.bookings.BookingCreatedEvent;
+import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsHandler;
 import entelect.training.incubator.spring.booking.communicator.notifications.NotificationDetails;
 import entelect.training.incubator.spring.booking.model.BookingCreatedMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class NotificationDetailsCommunicator implements NotificationDetails {
+public class NotificationDetailsCommunicator implements NotificationDetails, BookingEventsHandler {
   private final TopicExchange exchange;
   private final RabbitTemplate rabbitTemplate;
 
@@ -24,7 +28,7 @@ public class NotificationDetailsCommunicator implements NotificationDetails {
   }
 
   @Override
-  public void sendBookingNotification(String flightNumber, String firstName,
+  public void publishBookingDetails(String flightNumber, String firstName,
                                       String lastName,
                                       String phoneNumber,
                                       String departureTime) {
@@ -38,4 +42,13 @@ public class NotificationDetailsCommunicator implements NotificationDetails {
         notification);
     log.info("rabbitmq messaging completed");
   }
+
+  @EventListener()
+  @Async
+  public void handleBookingCreatedEvent(BookingCreatedEvent event) {
+    log.info("NotificationsListener: Received booking created event");
+    publishBookingDetails(event.getFlightNumber(), event.getFirstName(), event.getLastName(),
+            event.getPhoneNumber(), event.getDepartureTime().toString());
+  }
+
 }

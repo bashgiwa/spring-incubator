@@ -1,19 +1,23 @@
 package entelect.training.incubator.spring.booking.communicator.rewards.impl;
 
+import entelect.training.incubator.spring.booking.communicator.bookings.BookingCreatedEvent;
+import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsHandler;
 import entelect.training.incubator.spring.booking.communicator.rewards.RewardsClient;
 import entelect.training.incubator.spring.booking.communicator.rewards.RewardsDetails;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
 import entelect.training.incubator.spring.booking.rewards.stub.RewardsBalanceResponse;
+
 import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 import org.springframework.ws.soap.client.SoapFaultClientException;
 
 @Slf4j
-@Service
-public class RewardsClientCommunicator implements RewardsDetails {
-
+@Component
+public class RewardsClientCommunicator implements RewardsDetails, BookingEventsHandler {
   @Autowired
   RewardsClient rewardsClient;
 
@@ -33,7 +37,7 @@ public class RewardsClientCommunicator implements RewardsDetails {
     return balanceResponse;
   }
 
-  public void sendRewardsInformation(final BigDecimal amount, final String passportNumber) {
+  public void publishRewardsDetails(final BigDecimal amount, final String passportNumber) {
 
     try {
       log.info("attempt soap handshake with loyalty service");
@@ -49,8 +53,16 @@ public class RewardsClientCommunicator implements RewardsDetails {
     } catch (SoapFaultClientException ex) {
       log.error(
           "Unable to complete soap handshake: " + ex.getFaultStringOrReason());
-      throw new RuntimeException(ex);
+      //throw new RuntimeException(ex);
     }
 
+  }
+
+  @EventListener()
+  @Async
+  public void handleBookingCreatedEvent(BookingCreatedEvent event) {
+    log.info("RewardsListener: Received booking created event");
+    publishRewardsDetails(    BigDecimal.valueOf((double) event.getSeatCost()),
+            event.getPassportNumber());
   }
 }

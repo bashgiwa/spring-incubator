@@ -1,4 +1,4 @@
-package entelect.training.incubator.spring.booking.communicator.rewards;
+package entelect.training.incubator.spring.booking.comms.rewards;
 
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsRequest;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;

@@ -1,4 +1,4 @@
-package entelect.training.incubator.spring.booking.communicator.external;
+package entelect.training.incubator.spring.booking.comms.external;
 
 import org.springframework.http.ResponseEntity;
 

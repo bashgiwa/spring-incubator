@@ -64,7 +64,7 @@ public class UserService {
     return user;
   }
 
-  public AuthResponse login(LoginRequest request) throws UserNotFoundException {
+  public AuthResponse authenticateUser(LoginRequest request) throws UserNotFoundException {
     try {
       UsernamePasswordAuthenticationToken authenticationToken
           = new UsernamePasswordAuthenticationToken(request.getUsername(),

@@ -1,8 +1,8 @@
 package entelect.training.incubator.spring.booking.config;
 
-import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsPublisher;
-import entelect.training.incubator.spring.booking.communicator.external.impl.CustomerCommunicator;
-import entelect.training.incubator.spring.booking.communicator.external.impl.FlightCommunicator;
+import entelect.training.incubator.spring.booking.comms.bookings.BookingEventsPublisher;
+import entelect.training.incubator.spring.booking.comms.external.impl.CustomerCommunicator;
+import entelect.training.incubator.spring.booking.comms.external.impl.FlightCommunicator;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,21 +37,5 @@ public class BookingConfig {
   public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
     return new Jackson2JsonMessageConverter();
   }
-
-  @Bean
-  public FlightCommunicator flightCommunicator() {
-    return new FlightCommunicator();
-  }
-
-  @Bean
-  public CustomerCommunicator customerCommunicator() {
-    return new CustomerCommunicator();
-  }
-
-  @Bean("SimpleBookingEventsPublisher")
-  public BookingEventsPublisher SimpleBookingEventsPublisher(final ApplicationEventPublisher publisher) {
-    return new BookingEventsPublisher(publisher);
-  }
-  
 }
 

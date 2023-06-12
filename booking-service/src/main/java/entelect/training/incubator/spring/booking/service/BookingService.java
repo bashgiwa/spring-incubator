@@ -1,8 +1,8 @@
 package entelect.training.incubator.spring.booking.service;
 
-import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsPublisher;
-import entelect.training.incubator.spring.booking.communicator.external.impl.CustomerCommunicator;
-import entelect.training.incubator.spring.booking.communicator.external.impl.FlightCommunicator;
+import entelect.training.incubator.spring.booking.comms.bookings.BookingEventsPublisher;
+import entelect.training.incubator.spring.booking.comms.external.impl.CustomerCommunicator;
+import entelect.training.incubator.spring.booking.comms.external.impl.FlightCommunicator;
 import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.SearchType;
@@ -35,20 +35,19 @@ public class BookingService {
 
   private final BookingRepository bookingRepository;
   private final BookingReferenceGenerator referenceGenerator;
+  private final BookingEventsPublisher bookingEventsPublisher;
+  private final FlightCommunicator flightComms;
+  private final CustomerCommunicator customerComms;
 
   @Autowired
-  private BookingEventsPublisher bookingEventsPublisher;
-  @Autowired
-  private FlightCommunicator flightComms;
-  @Autowired
-  private CustomerCommunicator customerComms;
-  //@Autowired
-//  private ApplicationEventPublisher applicationEventPublisher;
-
-  @Autowired
-  BookingService(BookingRepository bookingRepository, BookingEventsPublisher bookingEventsPublisher) {
+  BookingService(BookingRepository bookingRepository,
+                 BookingEventsPublisher bookingEventsPublisher,
+                 FlightCommunicator flightComms,
+                 CustomerCommunicator customerComms) {
     this.bookingRepository = bookingRepository;
     this.bookingEventsPublisher = bookingEventsPublisher;
+    this.flightComms = flightComms;
+    this.customerComms = customerComms;
     this.referenceGenerator = new BookingReferenceGenerator();
   }
 

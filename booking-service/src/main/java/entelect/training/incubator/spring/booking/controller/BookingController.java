@@ -1,10 +1,8 @@
 package entelect.training.incubator.spring.booking.controller;
 
-import entelect.training.incubator.spring.booking.communicator.external.impl.CustomerCommunicator;
 import entelect.training.incubator.spring.booking.exceptions.CustomDataNotFoundException;
 import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
-import entelect.training.incubator.spring.booking.model.SearchType;
 import entelect.training.incubator.spring.booking.model.request.BookingSearchRequest;
 import entelect.training.incubator.spring.booking.model.response.CustomerSubscription;
 import entelect.training.incubator.spring.booking.model.response.FlightSubscription;

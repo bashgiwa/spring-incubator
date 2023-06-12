@@ -1,8 +1,8 @@
-package entelect.training.incubator.spring.booking.communicator.notifications.impl;
+package entelect.training.incubator.spring.booking.comms.notifications.impl;
 
-import entelect.training.incubator.spring.booking.communicator.bookings.BookingCreatedEvent;
-import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsHandler;
-import entelect.training.incubator.spring.booking.communicator.notifications.NotificationDetails;
+import entelect.training.incubator.spring.booking.comms.bookings.BookingCreatedEvent;
+import entelect.training.incubator.spring.booking.comms.bookings.BookingEventsHandler;
+import entelect.training.incubator.spring.booking.comms.notifications.NotificationDetails;
 import entelect.training.incubator.spring.booking.model.BookingCreatedMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;

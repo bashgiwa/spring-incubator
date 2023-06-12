@@ -1,6 +1,6 @@
 package entelect.training.incubator.spring.booking.config;
 
-import entelect.training.incubator.spring.booking.communicator.rewards.RewardsClient;
+import entelect.training.incubator.spring.booking.comms.rewards.RewardsClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;

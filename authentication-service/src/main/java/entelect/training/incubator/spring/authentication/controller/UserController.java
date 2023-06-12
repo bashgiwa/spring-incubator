@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 class UserController {
   private final UserService userService;
 
-
   @Autowired
   UserController(UserService userService) {
     this.userService = userService;
@@ -32,7 +31,7 @@ class UserController {
         throw new CustomParameterConstraintException("Incorrect login details");
       }
 
-      AuthResponse response = userService.login(request);
+      AuthResponse response = userService.authenticateUser(request);
       return new ResponseEntity<>(response, HttpStatus.OK);
     } catch (UserNotFoundException e) {
       throw new UserNotFoundException(e.getMessage());

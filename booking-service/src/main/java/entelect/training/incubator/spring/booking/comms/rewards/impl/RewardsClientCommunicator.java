@@ -1,9 +1,9 @@
-package entelect.training.incubator.spring.booking.communicator.rewards.impl;
+package entelect.training.incubator.spring.booking.comms.rewards.impl;
 
-import entelect.training.incubator.spring.booking.communicator.bookings.BookingCreatedEvent;
-import entelect.training.incubator.spring.booking.communicator.bookings.BookingEventsHandler;
-import entelect.training.incubator.spring.booking.communicator.rewards.RewardsClient;
-import entelect.training.incubator.spring.booking.communicator.rewards.RewardsDetails;
+import entelect.training.incubator.spring.booking.comms.bookings.BookingCreatedEvent;
+import entelect.training.incubator.spring.booking.comms.bookings.BookingEventsHandler;
+import entelect.training.incubator.spring.booking.comms.rewards.RewardsClient;
+import entelect.training.incubator.spring.booking.comms.rewards.RewardsDetails;
 import entelect.training.incubator.spring.booking.rewards.stub.CaptureRewardsResponse;
 import entelect.training.incubator.spring.booking.rewards.stub.RewardsBalanceResponse;
 

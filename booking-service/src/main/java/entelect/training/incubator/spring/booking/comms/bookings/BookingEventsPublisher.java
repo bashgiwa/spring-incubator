@@ -1,4 +1,4 @@
-package entelect.training.incubator.spring.booking.communicator.bookings;
+package entelect.training.incubator.spring.booking.comms.bookings;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

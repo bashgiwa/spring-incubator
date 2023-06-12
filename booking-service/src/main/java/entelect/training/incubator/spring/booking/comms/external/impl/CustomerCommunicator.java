@@ -1,7 +1,7 @@
-package entelect.training.incubator.spring.booking.communicator.external.impl;
+package entelect.training.incubator.spring.booking.comms.external.impl;
 
 
-import entelect.training.incubator.spring.booking.communicator.external.ExternalCommunicator;
+import entelect.training.incubator.spring.booking.comms.external.ExternalCommunicator;
 import entelect.training.incubator.spring.booking.exceptions.CustomDataNotFoundException;
 import entelect.training.incubator.spring.booking.model.response.CustomerSubscription;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +12,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j
+@Component
 @CacheConfig(cacheNames = {"customers"})
 public class CustomerCommunicator implements ExternalCommunicator {
 

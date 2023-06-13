@@ -123,9 +123,10 @@ public class BookingService {
     try {
       log.info("Publishing booking created event");
       bookingEventsPublisher.publishNewBookingEvent(booking, customer, flight);
+      log.info("Booking created successfully ");
     } catch (NullPointerException ex) {
       ex.printStackTrace();
     }
-    log.info("Booking created successfully ");
+
   }
 }

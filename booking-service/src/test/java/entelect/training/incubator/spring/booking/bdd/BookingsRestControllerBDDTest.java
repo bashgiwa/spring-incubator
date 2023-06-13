@@ -7,9 +7,9 @@ import io.cucumber.junit.CucumberOptions;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
+        plugin = {"pretty", "json:target/cucumber-reports/cucumber.json"},
         features = {"src/test/resources/features/CreateBooking"},
-        glue = {"steps", "config"},
-        extraGlue = {"entelect.training.incubator.spring.booking.bdd.config.CucumberSpringConfig"})
+        glue = {"steps"})
 
 public class BookingsRestControllerBDDTest {
 }

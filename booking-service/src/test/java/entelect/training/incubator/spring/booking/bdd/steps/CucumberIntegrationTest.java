@@ -11,7 +11,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import entelect.training.incubator.spring.booking.BookingServiceApplication;
-import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import io.cucumber.spring.CucumberContextConfiguration;
 

@@ -5,14 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import io.cucumber.java.Before;
@@ -22,11 +20,12 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 
-public class CreateBookingStep extends CucumberIntegrationTest {
+public class CreateBookingSteps extends CucumberIntegrationTest {
+    @Autowired
+    private LoginInformation loginInformation;
     private Scenario scenario;
     private String loginServiceUrl = "http://localhost:8210/user";
     private String bookingServiceUrl = "http://localhost:8209";
-    private String bearerToken;
     private HttpResponse<?> response;
     private Integer customerId;
     private Integer flightId;
@@ -48,7 +47,7 @@ public class CreateBookingStep extends CucumberIntegrationTest {
         assertEquals(200, response.statusCode());
 
         JSONObject json = new JSONObject((String) response.body());
-        bearerToken = json.getString("token");
+        loginInformation.setBearerToken(json.getString("token"));
     }
 
     @Given("Booking service is started")
@@ -71,7 +70,7 @@ public class CreateBookingStep extends CucumberIntegrationTest {
         requestBody.put("flightId", flightId);
         requestBody.put("customerId", customerId);
 
-        this.response = executePostWithToken(scenario, url, requestBody, bearerToken);
+        this.response = executePostWithToken(scenario, url, requestBody, loginInformation.getBearerToken());
         this.customerId = customerId;
         this.flightId = flightId;
     }

@@ -18,12 +18,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
@@ -51,9 +52,23 @@ public class BookingService {
     this.referenceGenerator = new BookingReferenceGenerator();
   }
 
-  public Booking createBooking(final Booking booking) {
+  public Mono<Booking> createBooking(final Booking booking) {
+    Mono<CustomerSubscription> customerSub =
+            getCustomerDetailsById(
+                    booking.getCustomerId().toString());
+    Mono<FlightSubscription> flightSub =
+            getFlightDetailsById(booking.getFlightId().toString());
+
+    return Mono.zip(customerSub, flightSub)
+            .zipWith(saveBooking(booking))
+            .doOnNext(tuple -> onBookingCreated(tuple.getT2(), tuple.getT1().getT1(), tuple.getT1().getT2()))
+            .map(Tuple2::getT2);
+  }
+
+  public Mono<Booking> saveBooking(Booking booking) {
     booking.setReferenceNumber(referenceGenerator.generate());
-    return bookingRepository.save(booking);
+    final Booking savedBooking = bookingRepository.save(booking);
+    return Mono.just(savedBooking);
   }
 
   public List<Booking> getBookings() {
@@ -109,11 +124,11 @@ public class BookingService {
     bookingRepository.deleteById(id);
   }
 
-  public ResponseEntity<CustomerSubscription> getCustomerDetailsById(final String id) {
+  public Mono<CustomerSubscription> getCustomerDetailsById(final String id) {
     return customerComms.getDetailsById(id);
   }
 
-  public ResponseEntity<FlightSubscription> getFlightDetailsById(final String id) {
+  public Mono<FlightSubscription> getFlightDetailsById(final String id) {
     return flightComms.getDetailsById(id);
   }
 
@@ -121,6 +136,8 @@ public class BookingService {
                                final CustomerSubscription customer,
                                final FlightSubscription flight) {
     try {
+      log.info(String.valueOf(customer));
+      log.info(String.valueOf(flight));
       log.info("Publishing booking created event");
       bookingEventsPublisher.publishNewBookingEvent(booking, customer, flight);
       log.info("Booking created successfully ");

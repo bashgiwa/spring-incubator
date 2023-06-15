@@ -4,8 +4,6 @@ import entelect.training.incubator.spring.booking.exceptions.CustomDataNotFoundE
 import entelect.training.incubator.spring.booking.exceptions.CustomParameterConstraintException;
 import entelect.training.incubator.spring.booking.model.Booking;
 import entelect.training.incubator.spring.booking.model.request.BookingSearchRequest;
-import entelect.training.incubator.spring.booking.model.response.CustomerSubscription;
-import entelect.training.incubator.spring.booking.model.response.FlightSubscription;
 import entelect.training.incubator.spring.booking.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,17 +54,7 @@ public class BookingController {
           "Invalid customer or flight id supplied");
     }
 
-    ResponseEntity<CustomerSubscription> customer =
-        bookingService.getCustomerDetailsById(
-            booking.getCustomerId().toString());
-    ResponseEntity<FlightSubscription> flight =
-        bookingService.getFlightDetailsById(booking.getFlightId().toString());
-
-    final Booking savedBooking = bookingService.createBooking(booking);
-    log.trace("Booking created " + savedBooking);
-
-    bookingService.onBookingCreated(savedBooking, customer.getBody(), flight.getBody());
-
+    final Booking savedBooking = bookingService.createBooking(booking).block();
     return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
   }
 

@@ -170,7 +170,7 @@ public class BookingsRestControllerIntegrationTest {
         Booking booking = new Booking();
         booking.setCustomerId(TEST_CUSTOMER_ID);
         booking.setFlightId(TEST_FLIGHT_ID);
-        return bookingService.createBooking(booking);
+        return bookingService.createBooking(booking).block();
     }
 
     private static byte[] toJson(Object object) throws IOException {
